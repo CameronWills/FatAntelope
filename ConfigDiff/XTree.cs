@@ -8,5 +8,8 @@ namespace ConfigDiff
 {
     class XTree
     {
+        public Dictionary<string, XNode> PathLookup = new Dictionary<string, XNode>();
+
+
     }
 }
