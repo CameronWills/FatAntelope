@@ -6,10 +6,21 @@ using System.Threading.Tasks;
 
 namespace ConfigDiff
 {
-    class XTree
+    public class XTree
     {
-        public Dictionary<string, XNode> PathLookup = new Dictionary<string, XNode>();
+        Dictionary<string, List<XNode>> nodes = new Dictionary<string, List<XNode>>();
 
-
+        public void Add(XNode node, string path)
+        {
+            if (nodes.ContainsKey(path))
+            {
+                nodes[path].Add(node);
+            }
+            else
+            {
+                var list = nodes[path] = new List<XNode>();
+                list.Add(node);
+            }
+        }
     }
 }

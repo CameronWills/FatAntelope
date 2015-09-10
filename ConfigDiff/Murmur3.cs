@@ -18,6 +18,12 @@ namespace ConfigDiff
             return hasher.ComputeHash(Encoding.UTF8.GetBytes(value));
         }
 
+        public static byte[] Hash(byte[] value)
+        {
+            var hasher = new Murmur3();
+            return hasher.ComputeHash(value);
+        }
+
         // 128 bit output, 64 bit platform version
  
         public static ulong READ_SIZE = 16;
