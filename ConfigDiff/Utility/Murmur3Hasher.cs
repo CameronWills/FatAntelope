@@ -7,34 +7,36 @@ using System.Threading.Tasks;
 namespace ConfigDiff
 {
     /// <summary>
-    /// 
+    /// Computes murmur3 hash values
     /// </summary>
-    class Murmur3
+    /// <remarks>
+    /// 128 bit output, 64 bit platform version
+    /// </remarks>
+    class Murmur3Hasher
     {
-        
-        public static byte[] Hash(string value)
-        {
-            var hasher = new Murmur3();
-            return hasher.ComputeHash(Encoding.UTF8.GetBytes(value));
-        }
+        public const int OUTPUT_LENGTH = 16;
+        public const ulong READ_SIZE = 16;
 
-        public static byte[] Hash(byte[] value)
-        {
-            var hasher = new Murmur3();
-            return hasher.ComputeHash(value);
-        }
-
-        // 128 bit output, 64 bit platform version
- 
-        public static ulong READ_SIZE = 16;
-        private static ulong C1 = 0x87c37b91114253d5L;
-        private static ulong C2 = 0x4cf5ad432745937fL;
+        private const ulong C1 = 0x87c37b91114253d5L;
+        private const ulong C2 = 0x4cf5ad432745937fL;
  
         private ulong length;
         private uint seed; // if want to start with a seed, create a constructor
         ulong h1;
         ulong h2;
- 
+
+        public static byte[] HashString(string value)
+        {
+            var hasher = new Murmur3Hasher();
+            return hasher.ComputeHash(Encoding.UTF8.GetBytes(value));
+        }
+
+        public static byte[] HashBytes(byte[] value)
+        {
+            var hasher = new Murmur3Hasher();
+            return hasher.ComputeHash(value);
+        }
+
         private void MixBody(ulong k1, ulong k2)
         {
             h1 ^= MixKey1(k1);
@@ -173,31 +175,32 @@ namespace ConfigDiff
             h1 ^= MixKey1(k1);
             h2 ^= MixKey2(k2);
         }
- 
+
         public byte[] Hash
         {
             get
             {
                 h1 ^= length;
                 h2 ^= length;
- 
+
                 h1 += h2;
                 h2 += h1;
- 
-                h1 = Murmur3.MixFinal(h1);
-                h2 = Murmur3.MixFinal(h2);
- 
+
+                h1 = Murmur3Hasher.MixFinal(h1);
+                h2 = Murmur3Hasher.MixFinal(h2);
+
                 h1 += h2;
                 h2 += h1;
- 
-                var hash = new byte[Murmur3.READ_SIZE];
- 
+
+                var hash = new byte[Murmur3Hasher.READ_SIZE];
+
                 Array.Copy(BitConverter.GetBytes(h1), 0, hash, 0, 8);
                 Array.Copy(BitConverter.GetBytes(h2), 0, hash, 8, 8);
- 
+
                 return hash;
             }
         }
+
     }
 
     public static class IntHelpers

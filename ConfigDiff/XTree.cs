@@ -3,24 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace ConfigDiff
 {
     public class XTree
     {
-        Dictionary<string, List<XNode>> nodes = new Dictionary<string, List<XNode>>();
+        public XNode Root { get; set; }
 
-        public void Add(XNode node, string path)
+        public XTree(XmlDocument doc)
         {
-            if (nodes.ContainsKey(path))
-            {
-                nodes[path].Add(node);
-            }
-            else
-            {
-                var list = nodes[path] = new List<XNode>();
-                list.Add(node);
-            }
+            Root = XNode.Build(doc.DocumentElement, null, string.Empty);
         }
     }
 }

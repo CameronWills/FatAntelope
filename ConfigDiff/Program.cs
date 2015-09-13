@@ -11,8 +11,17 @@ namespace ConfigDiff
     {
         static void Main(string[] args)
         {
+            if(args != null && args.Length > 0)
+            {
+                var tree = BuildTree(args[0]);
+                Console.WriteLine("Built");
+            }
+            else
+            {
+                Console.WriteLine("Need to pass filename");
+            }
 
-
+            Console.ReadLine();
         }
 
 
@@ -21,23 +30,7 @@ namespace ConfigDiff
             var doc = new XmlDocument();
             doc.Load(fileName);
 
-            doc.Cho
-
+            return new XTree(doc);
         }
-
-        public static XNode BuildNode(XmlNode node)
-        {
-            if (node.NodeType == XmlNodeType.Element)
-                return BuildElement(XmlNode);
-
-        }
-
-        public static XNode BuildElement(XmlNode node)
-        {
-            if (node.NodeType == XmlNodeType.Element)
-            {
-
-            }
-        } 
     }
 }
