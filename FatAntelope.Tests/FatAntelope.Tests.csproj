@@ -56,9 +56,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ConfigDiff\ConfigDiff.csproj">
-      <Project>{33f47373-adac-4457-ab31-b02238647758}</Project>
-      <Name>ConfigDiff</Name>
+    <ProjectReference Include="..\FatAntelope\FatAntelope.csproj">
+      <Project>{f5296ac7-bb60-4356-8313-dd54c82628dc}</Project>
+      <Name>FatAntelope</Name>
     </ProjectReference>
   </ItemGroup>
   <Choose>

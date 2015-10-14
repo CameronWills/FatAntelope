@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 
-namespace ConfigDiff
+namespace FatAntelope
 {
     public class XTree
     {
@@ -13,7 +13,7 @@ namespace ConfigDiff
 
         public XTree(XmlDocument doc)
         {
-            Root = XNode.Build(doc.DocumentElement, null, string.Empty);
+            Root = XNode.Build(doc.DocumentElement, null);
         }
     }
 }

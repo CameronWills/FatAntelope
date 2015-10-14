@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ConfigDiff
+namespace FatAntelope.Utility
 {
     /// <summary>
     /// Computes murmur3 hash values

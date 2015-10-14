@@ -2,8 +2,9 @@
 using System.Xml;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq;
+using FatAntelope;
 
-namespace ConfigDiff.Tests
+namespace FatAntelope.Tests
 {
     [TestClass]
     public class HashTest

@@ -4,13 +4,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ConfigDiff.Utility
+namespace FatAntelope.Utility
 {
     /// <summary>
     /// Compares byte arrays. Arrays must have equal length.
     /// </summary>
     class ByteArrayComparer : IComparer<byte[]>
     {
+        public static readonly ByteArrayComparer Instance = new ByteArrayComparer();
+        
         public int Compare(byte[] x, byte[] y)
         {
             if (x.Length != y.Length)
@@ -20,7 +22,7 @@ namespace ConfigDiff.Utility
             {
                 if (x[i] > y[i])
                     return 1;
-                else if (x[i] < y[i])
+                if (x[i] < y[i])
                     return -1;
             }
 

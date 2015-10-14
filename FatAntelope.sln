@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.30723.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FatAntelope.Tests", "FatAntelope.Tests\FatAntelope.Tests.csproj", "{D408EB08-1859-4275-8BA6-2139D031A529}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FatAntelope", "FatAntelope\FatAntelope.csproj", "{F5296AC7-BB60-4356-8313-DD54C82628DC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FatAntelope.Commands", "FatAntelope.CommandLine\FatAntelope.CommandLine.csproj", "{F6368D48-4767-4025-8D76-9D29D6127517}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D408EB08-1859-4275-8BA6-2139D031A529}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D408EB08-1859-4275-8BA6-2139D031A529}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D408EB08-1859-4275-8BA6-2139D031A529}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D408EB08-1859-4275-8BA6-2139D031A529}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F5296AC7-BB60-4356-8313-DD54C82628DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F5296AC7-BB60-4356-8313-DD54C82628DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F5296AC7-BB60-4356-8313-DD54C82628DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F5296AC7-BB60-4356-8313-DD54C82628DC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F6368D48-4767-4025-8D76-9D29D6127517}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F6368D48-4767-4025-8D76-9D29D6127517}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F6368D48-4767-4025-8D76-9D29D6127517}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F6368D48-4767-4025-8D76-9D29D6127517}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
