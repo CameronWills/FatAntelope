@@ -8,7 +8,7 @@ using System.Xml;
 namespace FatAntelope.Writers
 {
     /// <summary>
-    /// An XML diffgram writer for the microsoft Xml-Data-Transform (xdt) format.
+    /// An XML diffgram writer for the microsoft Xml-Document-Transform (xdt) format.
     /// </summary>
     /// <remarks>
     /// Implementation makes some assumptions about the XML in the config file, and is a little hacky.
