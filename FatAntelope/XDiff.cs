@@ -180,7 +180,7 @@ namespace FatAntelope
                     // Find and group unmatched elements by their name
                     foreach (var child1 in node1.Elements)
                     {
-                        if (child1.Matching == null)
+                        if (child1.Matching == null && child1.Match != MatchType.NoMatch)
                         {
                             if (name == null)
                                 name = child1.Name;
@@ -196,7 +196,7 @@ namespace FatAntelope
                     // Find unmatched nodes in the other subtree with the same element name
                     foreach (var child2 in node2.Elements)
                     {
-                        if (child2.Matching == null)
+                        if (child2.Matching == null && child2.Match != MatchType.NoMatch)
                         {
                             if (name == child2.Name)
                             {
@@ -325,7 +325,7 @@ namespace FatAntelope
             {
                 foreach (var node2 in nodes2)
                 {
-                    if (node2.Matching == null && node1.HashEquals(node2.Hash))
+                    if (node2.Matching == null && node2.Match != MatchType.NoMatch && node1.HashEquals(node2.Hash))
                     {
                         SetMatching(node1, node2, MatchType.Match);
                         matched++;
@@ -348,11 +348,11 @@ namespace FatAntelope
             var matched = 0;
             foreach (var node1 in nodes1)
             {
-                if (node1.Matching == null)
+                if (node1.Matching == null && node1.Match != MatchType.NoMatch)
                 {
                     foreach (var node2 in nodes2)
                     {
-                        if (node2.Matching == null)
+                        if (node2.Matching == null && node2.Match != MatchType.NoMatch)
                         {
                             SetMatching(node1, node2, match);
                             matched++;
@@ -411,7 +411,7 @@ namespace FatAntelope
             var count = 0;
             foreach (var node in nodes)
             {
-                if (node.Matching == null)
+                if (node.Matching == null && node.Match != MatchType.NoMatch)
                 {
                     node.Match = match;
                     count++;
@@ -639,7 +639,7 @@ namespace FatAntelope
                     // Find and group unmatched elements by their name
                     foreach (var child1 in node1.Elements)
                     {
-                        if (child1.Matching == null)
+                        if (child1.Matching == null && child1.Match != MatchType.NoMatch)
                         {
                             if (name == null)
                                 name = child1.Name;
@@ -655,7 +655,7 @@ namespace FatAntelope
                     // Find unmatched nodes in the other subtree with the same element name
                     foreach (var child2 in node2.Elements)
                     {
-                        if (child2.Matching == null)
+                        if (child2.Matching == null && child2.Match != MatchType.NoMatch)
                         {
                             if (name == child2.Name)
                             {
