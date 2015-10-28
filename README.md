@@ -1,7 +1,7 @@
 FatAntelope
 ===========
 A tool for generating an XDT transform (Micrsoft XML Document Transform) from two .config files.
-
+Useful for creating transforms for existing production web.config or app.config files.
 
 How it works
 ============
@@ -17,13 +17,13 @@ Usage
 
 Following build, simply run the command-line tool passing in the parameters
 
-  *FatAntelope source-file target-file output-file*
+**FatAntelope source-file target-file output-file**
 
 source-file: The original config file
 
 target-file: The final config file
 
-output-file: The generated XDT transform / diffgram
+output-file: The generated XDT transform / diffgram file
 
 Known Issues
 ============
