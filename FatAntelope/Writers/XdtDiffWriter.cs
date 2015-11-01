@@ -236,9 +236,9 @@ namespace FatAntelope.Writers
             return AddAttribute(target, XdtPrefix, XdtTransform, XdtNamespace, value);
         }
 
-        private TransformType GetTransformType(XNode node, bool deleting)
+        private TransformType GetTransformType(XNode node, bool deleteNoMatch)
         {
-            if (deleting && node.Match == MatchType.NoMatch)
+            if (deleteNoMatch && node.Match == MatchType.NoMatch)
                 return TransformType.Remove;
 
             if (node.Match == MatchType.NoMatch)
