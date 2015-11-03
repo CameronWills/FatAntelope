@@ -107,7 +107,7 @@ namespace FatAntelope.Writers
         public XmlDocument GetDiff(XTree tree)
         {
             var doc = new XmlDocument();
-            var root = WriteElement(tree.Root, doc, string.Empty, false, false);
+            var root = WriteElement(tree.Root.Matching, tree.Root, doc, string.Empty, false);
 
             var attr = doc.CreateAttribute("xmlns", XdtPrefix, "http://www.w3.org/2000/xmlns/");
             attr.Value = XdtNamespace;
@@ -116,60 +116,65 @@ namespace FatAntelope.Writers
             return doc;
         }
 
-        private XmlNode WriteElement(XNode node, XmlNode target, string path, bool hasPredicate, bool deleting)
+        private XmlNode WriteElement(XNode oldElement, XNode newElement, XmlNode target, string path, bool hasPredicate)
         {
-            var uniqueAttribute = GetUniqueAttribute(node);
-            path = GetPath(path, node, uniqueAttribute);
 
-            XmlNode element = null;            
-            var transform = GetTransformType(node, deleting);
-            if (transform == TransformType.Replace || transform == TransformType.Insert)
+            XmlNode element = null;
+            var transform = GetTransformType(oldElement, newElement);
+            if (transform == TransformType.Insert)
             {
-                element = CopyNode(node, target);
+                element = CopyNode(newElement, target);
                 AddTransform(element, transform.ToString());
-                if (transform == TransformType.Replace)
-                    AddLocator(element, node, path, uniqueAttribute, hasPredicate);
-
+                AddLocator(element, path, null, hasPredicate, false);
                 return element;
             }
-            else
+
+            var uniqueAttribute = GetUniqueAttribute(oldElement);
+            path = GetPath(path, oldElement, uniqueAttribute);
+            if (transform == TransformType.Replace)
             {
-                element = AddElement(target, node.XmlNode.Name);
-                if (transform == TransformType.Remove)
-                {
-                    AddTransform(element, TransformType.Remove.ToString());
-                    AddLocator(element, node, path, uniqueAttribute, hasPredicate);
-                    return element;
-                }
-                else if (transform == TransformType.SetAttributes)
-                {
-                    var attributeList = CopyAttributes(node, element);
-                    AddLocator(element, node, path, uniqueAttribute, hasPredicate);
-                    AddTransform(element, string.Format(XdtSetAttributes, attributeList));
-                }
-                else if (transform == TransformType.RemoveAttributes)
-                {
-                    var builder = new StringBuilder();
-                    var first = true;
-                    foreach (var attr in node.Matching.Attributes)
-                    {
-                        if (attr.Match == MatchType.NoMatch)
-                            builder.Append(first ? string.Empty : "," + attr.XmlNode.Name);
-                    }
-                    AddLocator(element, node, path, uniqueAttribute, hasPredicate);
-                    AddTransform(element, string.Format(XdtRemoveAttributes, builder.ToString()));
-                }
+                element = CopyNode(newElement, target);
+                AddTransform(element, transform.ToString());
+                AddLocator(element, path, uniqueAttribute, hasPredicate, false);
+                return element;
             }
 
-            foreach (var child in node.Elements)
+            element = AddElement(target, oldElement.XmlNode.Name);
+            if (transform == TransformType.Remove)
+            {
+                AddTransform(element, TransformType.Remove.ToString());
+                AddLocator(element, path, uniqueAttribute, hasPredicate, true);
+                return element;
+            }
+            
+            if (transform == TransformType.SetAttributes)
+            {
+                var attributeList = CopyAttributes(newElement, element);
+                AddLocator(element, path, uniqueAttribute, hasPredicate, true);
+                AddTransform(element, string.Format(XdtSetAttributes, attributeList));
+            }
+            else if (transform == TransformType.RemoveAttributes)
+            {
+                var builder = new StringBuilder();
+                var first = true;
+                foreach (var attr in oldElement.Attributes)
+                {
+                    if (attr.Match == MatchType.NoMatch)
+                        builder.Append(first ? string.Empty : "," + attr.XmlNode.Name);
+                }
+                AddLocator(element, path, uniqueAttribute, hasPredicate, true);
+                AddTransform(element, string.Format(XdtRemoveAttributes, builder.ToString()));
+            }
+
+            foreach (var child in newElement.Elements)
             {
                 if (child.Match == MatchType.Change || child.Match == MatchType.NoMatch)
-                    WriteElement(child, element, path, (hasPredicate || uniqueAttribute != null), false);
+                    WriteElement(child.Matching, child, element, path, (hasPredicate || uniqueAttribute != null));
             }
-            foreach(var child in node.Matching.Elements)
+            foreach(var child in oldElement.Elements)
             {
                 if (child.Match == MatchType.NoMatch)
-                    WriteElement(child, element, path, (hasPredicate || uniqueAttribute != null), true);
+                    WriteElement(child, null, element, path, (hasPredicate || uniqueAttribute != null));
             }
 
             return element;
@@ -224,14 +229,21 @@ namespace FatAntelope.Writers
             return elem;
         }
 
-        private XmlAttribute AddLocator(XmlNode target, XNode node, string path, XNode attribute, bool hasPredicate)
+        private XmlAttribute AddLocator(XmlNode target, string path, XNode attribute, bool hasPredicate, bool addAttribute)
         {
             if (!hasPredicate)
             {
                 if (attribute != null)
-                    return AddAttribute(target, XdtPrefix, XdtLocator, XdtNamespace, string.Format(XdtMatch, attribute.XmlNode.Name));
-
-                return null;
+                {
+                    if (attribute.Match == MatchType.Match)
+                    {
+                        if (addAttribute)
+                            CopyAttribute(attribute, target);
+                        return AddAttribute(target, XdtPrefix, XdtLocator, XdtNamespace, string.Format(XdtMatch, attribute.XmlNode.Name));
+                    }
+                }
+                else
+                    return null;
             }
 
             return AddAttribute(target, XdtPrefix, XdtLocator, XdtNamespace, string.Format(XdtXPath, path));
@@ -242,21 +254,68 @@ namespace FatAntelope.Writers
             return AddAttribute(target, XdtPrefix, XdtTransform, XdtNamespace, value);
         }
 
-        private TransformType GetTransformType(XNode node, bool deleteNoMatch)
+        private XNode GetUniqueAttribute(XNode oldElement)
         {
-            if (deleteNoMatch && node.Match == MatchType.NoMatch)
+            var duplicates = new List<XNode>();
+            var parent = oldElement.Parent;
+            if (parent != null)
+            {
+                // Check for siblings with the same name
+                foreach (var child in parent.Elements)
+                {
+                    if (child.Name == oldElement.Name)
+                        duplicates.Add(child);
+                }
+
+                // Mulitple elements with the same name 
+                if (duplicates.Count > 1)
+                {
+                    // try and find unique attribute
+                    foreach (var attribute in oldElement.Attributes)
+                    {
+                        var values = new HashSet<string>();
+                        var unique = true;
+                        foreach (var child in duplicates)
+                        {
+                            foreach (var childAttr in child.Attributes)
+                            {
+                                if (childAttr.Name == attribute.Name)
+                                {
+                                    if (values.Contains(childAttr.XmlNode.Value))
+                                        unique = false;
+                                    values.Add(childAttr.XmlNode.Value);
+                                    break;
+                                }
+                            }
+
+                            if (!unique)
+                                break;
+                        }
+
+                        if (unique)
+                            return attribute;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        private TransformType GetTransformType(XNode oldElement, XNode newElement)
+        {
+            if (oldElement != null && oldElement.Match == MatchType.NoMatch)
                 return TransformType.Remove;
 
-            if (node.Match == MatchType.NoMatch)
+            if (newElement != null && newElement.Match == MatchType.NoMatch)
                 return TransformType.Insert;
 
             // if text nodes are changed, then we must replace
-            var texts = GetCounts(node.Matching.Texts, node.Texts);
+            var texts = GetCounts(oldElement.Texts, newElement.Texts);
             if (texts.HasChanges())
                 return TransformType.Replace;
 
-            var attributes = GetCounts(node.Matching.Attributes, node.Attributes);
-            var elements = GetCounts(node.Matching.Elements, node.Elements);
+            var attributes = GetCounts(oldElement.Attributes, newElement.Attributes);
+            var elements = GetCounts(oldElement.Elements, newElement.Elements);
             
             // If no child elements
             if(!elements.HasAny())
@@ -275,13 +334,13 @@ namespace FatAntelope.Writers
 
             // If mostly only element inserts & deletes
             if((elements.IsInsertsOnly() || elements.IsDeletesOnly())
-                && (!attributes.HasChanges() || attributes.Unchanged < attributes.TotalChanges() 
-                    || node.GetDescendantCount() - node.Attributes.Length > attributes.Unchanged))
+                && (!attributes.HasChanges() || attributes.Unchanged < attributes.TotalChanges()
+                    || newElement.GetDescendantCount() - newElement.Attributes.Length > attributes.Unchanged))
                 return TransformType.Replace;
 
             // If most children have changed, replace
             var changed = attributes.TotalChanges() + elements.TotalChanges();
-            if (node.GetDescendantCount() - changed < changed)
+            if (newElement.GetDescendantCount() - changed < changed)
                 return TransformType.Replace;
             
             return TransformType.None;
@@ -311,53 +370,6 @@ namespace FatAntelope.Writers
             }
 
             return counts;
-        }
-
-        private XNode GetUniqueAttribute(XNode node)
-        {
-            var duplicates = new List<XNode>();
-            var parent = node.Parent;
-            if (parent != null)
-            {
-                // Check for siblings with the same name
-                foreach (var child in parent.Elements)
-                {
-                    if (child.Name == node.Name)
-                        duplicates.Add(child);
-                }
-
-                // Mulitple elements with the same name 
-                if (duplicates.Count > 1)
-                {
-                    // try and find unique attribute
-                    foreach (var attribute in node.Attributes)
-                    {
-                        var values = new HashSet<string>();
-                        var unique = true;
-                        foreach (var child in duplicates)
-                        {
-                            foreach (var childAttr in child.Attributes)
-                            {
-                                if (childAttr.Name == attribute.Name)
-                                {
-                                    if (values.Contains(childAttr.XmlNode.Value))
-                                        unique = false;
-                                    values.Add(childAttr.XmlNode.Value);
-                                    break;
-                                }
-                            }
-
-                            if (!unique)
-                                break;
-                        }
-
-                        if (unique)
-                            return attribute;
-                    }
-                }
-            }
-
-            return null;
         }
 
 
