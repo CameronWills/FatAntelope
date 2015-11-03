@@ -73,6 +73,22 @@ namespace FatAntelope.Writers
             }
         }
 
+        /// <summary>
+        /// Stores unique trait/s for an element
+        /// </summary>
+        private class Trait
+        {
+            public int Index { get; set; }
+            public XNode Attribute { get; set; }
+            //public XNode Element { get; set; }
+            //public string Value { get; set; }
+
+            public Trait()
+            {
+                Index = -1;
+            }
+        }
+
         #endregion
 
         private enum TransformType
@@ -94,9 +110,10 @@ namespace FatAntelope.Writers
         private const string XdtLocator = "Locator";
         private const string XdtMatch = "Match({0})";
         private const string XdtXPath = "XPath({0})";
-        private const string XdtXPathPredicate = "[{0}='{1}']";
         private const string XdtSetAttributes = "SetAttributes({0})";
         private const string XdtRemoveAttributes = "RemoveAttributes({0})";
+        private const string XPathPredicate = "[{0}='{1}']";
+        private const string XPathIndexPredicate = "[{0}]";
 
         public override void WriteDiff(XTree tree, string file)
         {
@@ -129,13 +146,13 @@ namespace FatAntelope.Writers
                 return element;
             }
 
-            var uniqueAttribute = GetUniqueAttribute(oldElement);
-            path = GetPath(path, oldElement, uniqueAttribute);
+            var trait = GetUniqueTrait(oldElement);
+            path = GetPath(path, oldElement, trait);
             if (transform == TransformType.Replace)
             {
                 element = CopyNode(newElement, target);
                 AddTransform(element, transform.ToString());
-                AddLocator(element, path, uniqueAttribute, hasPredicate, false);
+                AddLocator(element, path, trait, hasPredicate, false);
                 return element;
             }
 
@@ -143,14 +160,14 @@ namespace FatAntelope.Writers
             if (transform == TransformType.Remove)
             {
                 AddTransform(element, TransformType.Remove.ToString());
-                AddLocator(element, path, uniqueAttribute, hasPredicate, true);
+                AddLocator(element, path, trait, hasPredicate, true);
                 return element;
             }
             
             if (transform == TransformType.SetAttributes)
             {
                 var attributeList = CopyAttributes(newElement, element);
-                AddLocator(element, path, uniqueAttribute, hasPredicate, true);
+                AddLocator(element, path, trait, hasPredicate, true);
                 AddTransform(element, string.Format(XdtSetAttributes, attributeList));
             }
             else if (transform == TransformType.RemoveAttributes)
@@ -162,19 +179,19 @@ namespace FatAntelope.Writers
                     if (attr.Match == MatchType.NoMatch)
                         builder.Append(first ? string.Empty : "," + attr.XmlNode.Name);
                 }
-                AddLocator(element, path, uniqueAttribute, hasPredicate, true);
+                AddLocator(element, path, trait, hasPredicate, true);
                 AddTransform(element, string.Format(XdtRemoveAttributes, builder.ToString()));
             }
 
             foreach (var child in newElement.Elements)
             {
                 if (child.Match == MatchType.Change || child.Match == MatchType.NoMatch)
-                    WriteElement(child.Matching, child, element, path, (hasPredicate || uniqueAttribute != null));
+                    WriteElement(child.Matching, child, element, path, (hasPredicate || trait != null));
             }
             foreach(var child in oldElement.Elements)
             {
                 if (child.Match == MatchType.NoMatch)
-                    WriteElement(child, null, element, path, (hasPredicate || uniqueAttribute != null));
+                    WriteElement(child, null, element, path, (hasPredicate || trait != null));
             }
 
             return element;
@@ -229,12 +246,13 @@ namespace FatAntelope.Writers
             return elem;
         }
 
-        private XmlAttribute AddLocator(XmlNode target, string path, XNode attribute, bool hasPredicate, bool addAttribute)
+        private XmlAttribute AddLocator(XmlNode target, string path, Trait trait, bool hasPredicate, bool addAttribute)
         {
             if (!hasPredicate)
             {
-                if (attribute != null)
+                if (trait != null && trait.Attribute != null)
                 {
+                    var attribute = trait.Attribute;
                     if (attribute.Match == MatchType.Match)
                     {
                         if (addAttribute)
@@ -254,17 +272,23 @@ namespace FatAntelope.Writers
             return AddAttribute(target, XdtPrefix, XdtTransform, XdtNamespace, value);
         }
 
-        private XNode GetUniqueAttribute(XNode oldElement)
+        private Trait GetUniqueTrait(XNode oldElement)
         {
             var duplicates = new List<XNode>();
             var parent = oldElement.Parent;
             if (parent != null)
             {
+                var index = -1;
+
                 // Check for siblings with the same name
-                foreach (var child in parent.Elements)
+                foreach(var child in parent.Elements)
                 {
                     if (child.Name == oldElement.Name)
+                    {
                         duplicates.Add(child);
+                        if(child == oldElement)
+                            index = duplicates.Count - 1;
+                    }
                 }
 
                 // Mulitple elements with the same name 
@@ -293,8 +317,10 @@ namespace FatAntelope.Writers
                         }
 
                         if (unique)
-                            return attribute;
+                            return new Trait() { Attribute = attribute };
                     }
+
+                    return new Trait() { Index = index };
                 }
             }
 
@@ -373,12 +399,22 @@ namespace FatAntelope.Writers
         }
 
 
-        private string GetPath(string path, XNode node, XNode attribute)
+        private string GetPath(string path, XNode node, Trait trait)
         {
-            return path + "/" + node.XmlNode.Name 
-                + (attribute != null
-                    ? string.Format(XdtXPathPredicate, attribute.XmlNode.Name, attribute.XmlNode.Value )
-                    : string.Empty);
+            var newPath = path + "/" + node.XmlNode.Name;
+            if(trait != null)
+            { 
+                if(trait.Attribute != null)
+                {
+                    var xmlNode = trait.Attribute.XmlNode;
+                    return newPath + string.Format(XPathPredicate, "@" + xmlNode.Name, xmlNode.Value);
+                }
+
+                if(trait.Index >= 0)
+                    return newPath + string.Format(XPathIndexPredicate, trait.Index);
+            }
+
+            return newPath;
         }
     }
 }
