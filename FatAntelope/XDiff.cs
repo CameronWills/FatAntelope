@@ -55,7 +55,7 @@ namespace FatAntelope
         private const int NoMatch = -1;
         private const int Delete = -1;
         private const int Insert = -1;
-        private const int NoConnection = 2147483647;
+        private const int NoConnection = 1048576;
         private const int MaxCircuitLength = 2048;
 
         private static Dictionary<Tuple<XNode, XNode>, int> distanceLookup;
@@ -66,23 +66,20 @@ namespace FatAntelope
         public static void Diff(XTree tree1, XTree tree2)
         {
             if (tree1.Root.HashEquals(tree2.Root.Hash))
-                Console.WriteLine("No Difference!");
-            else
             {
-                if (tree1.Root.Name != tree2.Root.Name)
-                {
-                    Console.WriteLine("The root tag name has changed");
-                    tree1.Root.Match = MatchType.NoMatch;
-                    tree2.Root.Match = MatchType.NoMatch;
-                }
-                else
-                {
-                    distanceLookup = new Dictionary<Tuple<XNode, XNode>, int>();
-
-                    SetMatching(tree1.Root, tree2.Root, MatchType.Change);
-                    DiffElements(tree1.Root, tree2.Root, false);
-                }
+                SetMatching(tree1.Root, tree2.Root, MatchType.Match);
+                return;
             }
+            
+            if (tree1.Root.Name != tree2.Root.Name)
+            {
+                SetMatching(tree1.Root, tree1.Root, MatchType.NoMatch);
+                return;
+            }
+
+            distanceLookup = new Dictionary<Tuple<XNode, XNode>, int>();
+            SetMatching(tree1.Root, tree2.Root, MatchType.Change);
+            DiffElements(tree1.Root, tree2.Root, false);
         }
 
         /// <summary>
@@ -574,7 +571,7 @@ namespace FatAntelope
                 if (isElement1 && isElement2)
                 {
                     if (child1.Name == child2.Name)
-                        dist += DistanceElements(node1, node2, threshold - dist);
+                        dist += DistanceElements(child1, child1, threshold - dist);
                     else
                         dist += child1.GetDescendantCount() + child2.GetDescendantCount() + 2;
                 }

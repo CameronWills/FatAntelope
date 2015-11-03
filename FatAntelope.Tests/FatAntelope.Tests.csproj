@@ -55,9 +55,9 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="XdtWriterTest.cs" />
-    <Compile Include="XDiffTest.cs" />
-    <Compile Include="XTreeEqualityTest.cs" />
+    <Compile Include="XdtDiffWriterTests.cs" />
+    <Compile Include="XDiffTests.cs" />
+    <Compile Include="XTreeEqualityTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

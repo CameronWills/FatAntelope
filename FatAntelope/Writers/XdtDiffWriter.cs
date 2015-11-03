@@ -100,14 +100,20 @@ namespace FatAntelope.Writers
 
         public override void WriteDiff(XTree tree, string file)
         {
+            var doc = GetDiff(tree);
+            doc.Save(file);
+        }
+
+        public XmlDocument GetDiff(XTree tree)
+        {
             var doc = new XmlDocument();
             var root = WriteElement(tree.Root, doc, string.Empty, false, false);
 
             var attr = doc.CreateAttribute("xmlns", XdtPrefix, "http://www.w3.org/2000/xmlns/");
             attr.Value = XdtNamespace;
             root.Attributes.Append(attr);
-            
-            doc.Save(file);
+
+            return doc;
         }
 
         private XmlNode WriteElement(XNode node, XmlNode target, string path, bool hasPredicate, bool deleting)
@@ -218,12 +224,12 @@ namespace FatAntelope.Writers
             return elem;
         }
 
-        private XmlAttribute AddLocator(XmlNode target, XNode node, string path, Tuple<string, string> attribute, bool hasPredicate)
+        private XmlAttribute AddLocator(XmlNode target, XNode node, string path, XNode attribute, bool hasPredicate)
         {
             if (!hasPredicate)
             {
                 if (attribute != null)
-                    return AddAttribute(target, XdtPrefix, XdtLocator, XdtNamespace, string.Format(XdtMatch, attribute.Item1));
+                    return AddAttribute(target, XdtPrefix, XdtLocator, XdtNamespace, string.Format(XdtMatch, attribute.XmlNode.Name));
 
                 return null;
             }
@@ -307,7 +313,7 @@ namespace FatAntelope.Writers
             return counts;
         }
 
-        private Tuple<string,string> GetUniqueAttribute(XNode node)
+        private XNode GetUniqueAttribute(XNode node)
         {
             var duplicates = new List<XNode>();
             var parent = node.Parent;
@@ -346,7 +352,7 @@ namespace FatAntelope.Writers
                         }
 
                         if (unique)
-                            return new Tuple<string,string> (attribute.Name, attribute.XmlNode.Value);
+                            return attribute;
                     }
                 }
             }
@@ -355,11 +361,11 @@ namespace FatAntelope.Writers
         }
 
 
-        private string GetPath(string path, XNode node, Tuple<string, string> attribute)
+        private string GetPath(string path, XNode node, XNode attribute)
         {
             return path + "/" + node.XmlNode.Name 
                 + (attribute != null
-                    ? string.Format(XdtXPathPredicate, attribute.Item1, attribute.Item2)
+                    ? string.Format(XdtXPathPredicate, attribute.XmlNode.Name, attribute.XmlNode.Value )
                     : string.Empty);
         }
     }
