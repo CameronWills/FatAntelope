@@ -9,11 +9,13 @@ namespace FatAntelope
 {
     public class XTree
     {
+        public XmlDocument Document { get; set; }
         public XNode Root { get; set; }
 
-        public XTree(XmlDocument doc)
+        public XTree(XmlDocument document)
         {
-            Root = XNode.Build(doc.DocumentElement, null);
+            Document = document;
+            Root = XNode.Build(document.DocumentElement, null);
         }
     }
 }

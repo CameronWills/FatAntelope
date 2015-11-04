@@ -10,21 +10,26 @@ namespace FatAntelope.CommandLine
 {
     class Program
     {
-        internal enum ExitCode : int
+        private enum ExitCode : int
         {
             Success = 0,
             InvalidParameters = 1,
             NoDifference = 2,
             RootNodeMismatch = 3,
-            UnknownError = 10
+            UnknownError = 100
         }
 
         static int Main(string[] args)
         {
-            if (args == null || args.Length != 3)
+            if (args == null || args.Length < 3 || args.Length > 4)
             {
-                Console.WriteLine("Unexpected number of paramters");
-                Console.WriteLine("Usage: FatAntelope [source-file] [target-file] [output-file]");
+                Console.WriteLine("Error: Unexpected number of paramters." + Environment.NewLine);
+                Console.WriteLine("Usage: FatAntelope source-file target-file output-file [transformed-file]");
+                Console.WriteLine("  source-file : (Input) The original config file");
+                Console.WriteLine("  target-file : (Input) The final config file");
+                Console.WriteLine("  output-file : (Output) The output config transform patch file");
+                Console.WriteLine("  transformed-file : (Optional Output) The config file resulting from applying the output-file to the source-file");
+                Console.WriteLine("                     This file should be semantically equal to the target-file.");
                 return (int)ExitCode.InvalidParameters;
             }
 
@@ -52,7 +57,6 @@ namespace FatAntelope.CommandLine
             Console.WriteLine("Done!");
             return (int)ExitCode.Success;
         }
-
 
         public static XTree BuildTree(string fileName)
         {
