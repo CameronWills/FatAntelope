@@ -160,6 +160,7 @@ namespace FatAntelope.Writers
 
             var trait = GetUniqueTrait(oldElement);
             path = GetPath(path, oldElement, trait);
+            hasPredicate = (hasPredicate || trait != null);
             if (transform == TransformType.Replace)  // Replace
             {
                 element = CopyNode(newElement, target);
@@ -200,12 +201,12 @@ namespace FatAntelope.Writers
             foreach (var child in newElement.Elements)
             {
                 if (child.Match == MatchType.Change || child.Match == MatchType.NoMatch)
-                    WriteElement(child.Matching, child, element, path, (hasPredicate || trait != null));
+                    WriteElement(child.Matching, child, element, path, hasPredicate);
             }
             foreach(var child in oldElement.Elements)
             {
                 if (child.Match == MatchType.NoMatch)
-                    WriteElement(child, null, element, path, (hasPredicate || trait != null));
+                    WriteElement(child, null, element, path, hasPredicate);
             }
 
             return element;
@@ -326,7 +327,7 @@ namespace FatAntelope.Writers
                     {
                         duplicates.Add(child);
                         if (child == element)
-                            index = duplicates.Count - 1;
+                            index = duplicates.Count;
                     }
                 }
 
@@ -387,7 +388,7 @@ namespace FatAntelope.Writers
             var elements = GetCounts(oldElement.Elements, newElement.Elements);
             
             // If no child elements
-            if(!elements.HasAny())
+            if (!elements.HasAny() || !elements.HasChanges())
             {
                 // If only attribute deletes, mark attributes for removal
                 if(attributes.IsDeletesOnly())
@@ -395,7 +396,7 @@ namespace FatAntelope.Writers
                 
                 // If most attributes unchanged, only set certain attributes
                 //  note, if both updating and deleting some attributes, then Replace is necessary
-                if(attributes.Unchanged >= attributes.TotalChanges()  && attributes.Deletes == 0)
+                if(attributes.Unchanged >= attributes.TotalChanges() && attributes.Deletes == 0)
                     return TransformType.SetAttributes;
 
                 return TransformType.Replace;

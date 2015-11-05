@@ -65,6 +65,5 @@ namespace FatAntelope.Tests
 
             Assert.AreEqual(tree1.Root.Elements[0].Attributes[0].Matching, tree2.Root.Elements[0].Attributes[1]);
         }
-
     }
 }
