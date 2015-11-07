@@ -41,6 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Utility\ArrayHelper.cs" />
     <Compile Include="Utility\ByteArrayComparer.cs" />
     <Compile Include="Utility\Murmur3Hasher.cs" />
     <Compile Include="Writers\BaseDiffWriter.cs" />

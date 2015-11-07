@@ -79,13 +79,13 @@ namespace FatAntelope
 
             distanceLookup = new Dictionary<Tuple<XNode, XNode>, int>();
             SetMatching(tree1.Root, tree2.Root, MatchType.Change);
-            DiffElements(tree1.Root, tree2.Root, false);
+            DiffElements(tree1.Root, tree2.Root);
         }
 
         /// <summary>
         /// Compare and match the two nodes (and their children).
         /// </summary>
-        private static void DiffElements(XNode node1, XNode node2, bool withDistance)
+        private static void DiffElements(XNode node1, XNode node2)
         {
             // Attributes
             if (node1.Attributes.Length > 0)
@@ -126,7 +126,7 @@ namespace FatAntelope
                     if (child1.Name == child2.Name)
                     {
                         SetMatching(child1, child2, MatchType.Change);
-                        DiffElements(child1, child2, withDistance);
+                        DiffElements(child1, child2);
                     }
                     else
                         SetMatching(child1, child2, MatchType.NoMatch);
@@ -210,14 +210,14 @@ namespace FatAntelope
                         if ((unmatched1.Count == 1) && (unmatched2.Count == 1))
                         {
                             SetMatching(unmatched1[0], unmatched2[0], MatchType.Change);
-                            DiffElements(unmatched1[0], unmatched2[0], withDistance);
+                            DiffElements(unmatched1[0], unmatched2[0]);
                         }
 
                         // Find minimal-cost matching between those unmatched
                         else if (unmatched1.Count >= unmatched2.Count)
-                            MatchList(unmatched1.ToArray(), unmatched2.ToArray(), true, withDistance);
+                            MatchList(unmatched1.ToArray(), unmatched2.ToArray(), true);
                         else
-                            MatchList(unmatched2.ToArray(), unmatched1.ToArray(), false, withDistance);
+                            MatchList(unmatched2.ToArray(), unmatched1.ToArray(), false);
                     }
 
                 }
@@ -421,7 +421,7 @@ namespace FatAntelope
         /// <summary>
         /// Find minimal cost matching between two node lists; Record the matching info back to the trees.
         /// </summary>
-        private static void MatchList(XNode[] nodes1, XNode[] nodes2, bool treeOrder, bool matchFlag)
+        private static void MatchList(XNode[] nodes1, XNode[] nodes2, bool treeOrder)
         {
             var distance = new int[nodes1.Length + 1, nodes2.Length + 1];
 
@@ -438,29 +438,20 @@ namespace FatAntelope
                 for (int j = 0; j < nodes2.Length; j++)
                 {
                     int dist = 0;
-                    if (matchFlag)
+                    
+                    dist = treeOrder
+                        ? Distance(nodes1[i], nodes2[j], true, NoConnection)
+                        : Distance(nodes2[j], nodes1[i], true, NoConnection);
+
+                    if (dist < NoConnection)
                     {
                         var key = treeOrder
                             ? new Tuple<XNode, XNode>(nodes1[i], nodes2[j])
                             : new Tuple<XNode, XNode>(nodes2[j], nodes1[i]);
 
-                        distanceLookup.TryGetValue(key, out dist);
+                        distanceLookup[key] = dist;
                     }
-                    else
-                    {
-                        dist = treeOrder
-                            ? Distance(nodes1[i], nodes2[j], true, NoConnection)
-                            : Distance(nodes2[j], nodes1[i], true, NoConnection);
 
-                        if (dist < NoConnection)
-                        {
-                            var key = treeOrder
-                                ? new Tuple<XNode, XNode>(nodes1[i], nodes2[j])
-                                : new Tuple<XNode, XNode>(nodes2[j], nodes1[i]);
-
-                            distanceLookup[key] = dist;
-                        }
-                    }
                     distance[i, j] = dist;
                 }
             }
@@ -495,9 +486,9 @@ namespace FatAntelope
                     if (node1.IsElement() && node2.IsElement())
                     {
                         if (treeOrder)
-                            DiffElements(node1, node2, true);
+                            DiffElements(node1, node2);
                         else
-                            DiffElements(node2, node1, true);
+                            DiffElements(node2, node1);
                     }
                 }
             }

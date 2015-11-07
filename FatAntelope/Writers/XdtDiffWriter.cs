@@ -108,6 +108,8 @@ namespace FatAntelope.Writers
             Replace = 9
         }
 
+        private const string XmlNamespace = "xmlns";
+        private const string XmlNamespaceUri = "http://www.w3.org/2000/xmlns/";
         private const string XdtNamespace = "http://schemas.microsoft.com/XML-Document-Transform";
         private const string XdtPrefix = "xdt";
         private const string XdtTransform = "Transform";
@@ -137,7 +139,7 @@ namespace FatAntelope.Writers
             var doc = new XmlDocument();
             var root = WriteElement(tree.Root.Matching, tree.Root, doc, string.Empty);
 
-            var attr = doc.CreateAttribute("xmlns", XdtPrefix, "http://www.w3.org/2000/xmlns/");
+            var attr = doc.CreateAttribute(XmlNamespace, XdtPrefix, XmlNamespaceUri);
             attr.Value = XdtNamespace;
             root.Attributes.Append(attr);
 
@@ -166,12 +168,12 @@ namespace FatAntelope.Writers
             {
                 element = CopyNode(newElement, target);
                 AddTransform(element, transform.ToString());
-                AddLocator(element, trait, false);
+                AddLocator(element, oldElement, trait, false, transform);
                 return element;
             }
 
-            element = AddElement(target, oldElement.XmlNode.Name);
-            AddLocator(element, trait, true);
+            element = AddElement(target, oldElement);
+            AddLocator(element, oldElement, trait, true, transform);
             if (transform == TransformType.Remove)  // Remove
             {
                 AddTransform(element, TransformType.Remove.ToString());
@@ -190,8 +192,8 @@ namespace FatAntelope.Writers
 
                 if (transform == TransformType.RemoveAndSetAttributes)   // RemoveAndSetAttributes
                 {
-                    var element2 = AddElement(target, oldElement.XmlNode.Name);
-                    AddLocator(element2, trait, true);
+                    var element2 = AddElement(target, oldElement);
+                    AddLocator(element2, oldElement, trait, true, transform);
                     var attributeList = CopyAttributes(newElement, element2);
                     AddTransform(element2, string.Format(XdtSetAttributes, attributeList));
                 }
@@ -208,7 +210,12 @@ namespace FatAntelope.Writers
                 if (child.Match == MatchType.Change || child.Match == MatchType.NoMatch)
                     WriteElement(child.Matching, child, element, path);
             }
-            foreach(var child in oldElement.Elements)
+            
+            // Remove elements that dont exist in the target config
+            // HACK: Reverse to remove from the end first, this prevents the condition when using 
+            //  positional predicates to remove child[1] and then try also to remove child[2],
+            //  however, it has now moved up into position [1].
+            foreach(var child in oldElement.Elements.Reverse())
             {
                 if (child.Match == MatchType.NoMatch)
                     WriteElement(child, null, element, path);
@@ -220,7 +227,7 @@ namespace FatAntelope.Writers
         /// <summary>
         /// Copy all inserted or updated attributes to the given element. 
         /// </summary>
-        private string CopyAttributes(XNode node, XmlNode element)
+        private string CopyAttributes(XNode node, XmlNode parent)
         {
             var builder = new StringBuilder();
             var first = true;
@@ -228,7 +235,7 @@ namespace FatAntelope.Writers
             {
                 if (attr.Match == MatchType.Change || attr.Match == MatchType.NoMatch)
                 {
-                    var attribute = CopyAttribute(attr, element);
+                    var attribute = CopyAttribute(attr, parent);
                     builder.Append((first ? string.Empty : ",") + attr.XmlNode.Name);
                     first = false;
                 }
@@ -240,10 +247,10 @@ namespace FatAntelope.Writers
         /// <summary>
         /// Copy an attribute to the given element. 
         /// </summary>
-        private XmlNode CopyAttribute(XNode node, XmlNode element)
+        private XmlNode CopyAttribute(XNode node, XmlNode parent)
         {
-            var child = element.OwnerDocument.ImportNode(node.XmlNode, true);
-            element.Attributes.Append(child as XmlAttribute);
+            var child = parent.OwnerDocument.ImportNode(node.XmlNode, true);
+            parent.Attributes.Append(child as XmlAttribute);
 
             return child;
         }
@@ -251,10 +258,10 @@ namespace FatAntelope.Writers
         /// <summary>
         /// Copy an element or text node to the given element. 
         /// </summary>
-        private XmlNode CopyNode(XNode node, XmlNode element)
+        private XmlNode CopyNode(XNode node, XmlNode parent)
         {
-            var child = element.OwnerDocument.ImportNode(node.XmlNode, true);
-            element.AppendChild(child);
+            var child = parent.OwnerDocument.ImportNode(node.XmlNode, true);
+            parent.AppendChild(child);
 
             return child;
         }
@@ -262,22 +269,30 @@ namespace FatAntelope.Writers
         /// <summary>
         /// Append a new attribute to the given element. 
         /// </summary>
-        private XmlAttribute AddAttribute(XmlNode element, string prefix, string name, string namespaceUri, string value)
+        private XmlAttribute AddAttribute(XmlNode parent, string prefix, string name, string namespaceUri, string value)
         {
-            var attr = element.OwnerDocument.CreateAttribute(prefix, name, namespaceUri);
+            var attr = parent.OwnerDocument.CreateAttribute(prefix, name, namespaceUri);
             attr.Value = value;
 
-            return element.Attributes.Append(attr);
+            return parent.Attributes.Append(attr);
         }
 
         /// <summary>
         /// Append a new element with the given name. 
         /// </summary>
-        private XmlElement AddElement(XmlNode parent, string name)
+        private XmlElement AddElement(XmlNode parent, XNode element)
         {
-            var elem = (parent.OwnerDocument ?? (XmlDocument)parent).CreateElement(name);
+            var elem = (parent.OwnerDocument ?? (XmlDocument)parent).CreateElement(element.XmlNode.Name);
+            
+            // Copy over namespace declaration attributes
+            foreach (var attribute in element.Attributes)
+            {
+                var name = attribute.Name.ToLowerInvariant();
+                if (name == XmlNamespace || name.StartsWith(XmlNamespace + ":"))
+                    CopyAttribute(attribute, elem);
+            }
+            
             parent.AppendChild(elem);
-
             return elem;
         }
 
@@ -285,7 +300,7 @@ namespace FatAntelope.Writers
         /// Add the xdt:Locator attribute to the given element when necessary. 
         /// Will use the Match(attribute) option instead of a Condition when possible.
         /// </summary>
-        private XmlAttribute AddLocator(XmlNode element, Trait trait, bool addAttribute)
+        private XmlAttribute AddLocator(XmlNode parent, XNode element, Trait trait, bool addAttribute, TransformType transform)
         {
             if (trait != null)
             {
@@ -295,18 +310,42 @@ namespace FatAntelope.Writers
                     if (attribute.Match == MatchType.Match)
                     {
                         if (addAttribute)
-                            CopyAttribute(attribute, element);
+                            CopyAttribute(attribute, parent);
 
-                        return AddAttribute(element, XdtPrefix, XdtLocator, XdtNamespace, string.Format(XdtMatch, attribute.XmlNode.Name));
+                        return AddAttribute(parent, XdtPrefix, XdtLocator, XdtNamespace, string.Format(XdtMatch, attribute.XmlNode.Name));
                     }
 
-                    return AddAttribute(element, XdtPrefix, XdtLocator, XdtNamespace, string.Format(XdtCondition, BuildPredicate(attribute.XmlNode)));
+                    if ((transform != TransformType.SetAttributes 
+                        && transform != TransformType.RemoveAttributes 
+                        && transform != TransformType.RemoveAndSetAttributes)
+                        || !HasChildChanges(element))
+                        return AddAttribute(parent, XdtPrefix, XdtLocator, XdtNamespace, string.Format(XdtCondition, BuildPredicate(attribute.XmlNode)));
                 }
 
-                return AddAttribute(element, XdtPrefix, XdtLocator, XdtNamespace, string.Format(XdtCondition, trait.Index));
+                return AddAttribute(parent, XdtPrefix, XdtLocator, XdtNamespace, string.Format(XdtCondition, trait.Index));
 
             }
             return null;
+        }
+
+        private bool HasChildChanges(XNode element)
+        {
+            foreach(var child in element.Elements)
+            {
+                if(child.Match != MatchType.Match)
+                    return true;
+            }
+
+            if(element.Matching != null)
+            { 
+                foreach (var child in element.Matching.Elements)
+                {
+                    if (child.Match != MatchType.Match)
+                        return true;
+                }
+            }
+
+            return false;
         }
 
         private string BuildPredicate(XmlNode node)
@@ -369,7 +408,7 @@ namespace FatAntelope.Writers
                         }
 
                         if (unique)
-                            return new Trait() { Attribute = attribute };
+                            return new Trait() { Attribute = attribute, Index = index };
                     }
 
                     // No unique attributes, so use index
