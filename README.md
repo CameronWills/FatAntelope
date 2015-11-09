@@ -23,15 +23,15 @@ Following build, you can use reference the FatAntelope library directly or other
 Command Line
 ------------
 
-**FatAntelope source-file target-file output-file [transformed-file]**
+FatAntelope source-file target-file output-file [transformed-file]
 
-    source-file : (input) original config file path.  E.g. the development web.config
+   source-file : (input) original config file path.  E.g. the development web.config
 
-    target-file : (input) final config file path.  E.g. the production web.config
+   target-file : (input) final config file path.  E.g. the production web.config
 
-    output-file : (output) file path to save the generated patch .  E.g. web.release.config
+   output-file : (output) file path to save the generated patch .  E.g. web.release.config
 
-    transformed-file : (output, optional) file path to save the result from applying the output-file to the source-file.
+   transformed-file : (output, optional) file path to save the result from applying the output-file to the source-file.
 
 Known Issues
 ============
