@@ -11,6 +11,9 @@ that have been updated, inserted or deleted. And then generates a XDT transform 
 The XML diff / comparison algorithm is a C# port of the 'XDiff' algorithm described here: 
 http://pages.cs.wisc.edu/~yuanwang/xdiff.html
 
+Download
+============
+Download the command-line tool in [releases](https://github.com/CameronWills/FatAntelope/releases)
 
 Usage
 =====
@@ -22,16 +25,16 @@ Command Line
 
 **FatAntelope source-file target-file output-file [transformed-file]**
 
-source-file : (Input) The original config file. E.g. the development web.config
+    source-file : (input) original config file path.  E.g. the development web.config
 
-target-file : (Input) The final config file E.g. the production web.config
+    target-file : (input) final config file path.  E.g. the production web.config
 
-output-file : (Output) The generated config transform patch file E.g. web.release.config
+    output-file : (output) file path to save the generated patch .  E.g. web.release.config
 
-transformed-file : (Optional Output) The config file resulting from applying the output-file to the source-file just for checking. This file should be semantically equal to the target-file.
+    transformed-file : (output, optional) file path to save the result from applying the output-file to the source-file.
 
 Known Issues
 ============
 - The generated XDT transform may not have the most optimal values for the xdt:Locator and xdt:Transform attributes. I recommend only using this output as a starting-point for your transforms.
 
-- The XML comparison algorithm (XDiff) does an unordered comparison of XML nodes, so child elements repositioned within the same parent will be ignored.
+- The XML comparison algorithm used (XDiff) does an unordered comparison of XML nodes, so changes to child elements' position within the same parent will be ignored.

@@ -3,6 +3,7 @@ using Microsoft.Web.XmlTransform;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
@@ -22,44 +23,51 @@ namespace FatAntelope.CommandLine
 
         static int Main(string[] args)
         {
+            var version = Assembly.GetEntryAssembly().GetName().Version;
+            Console.WriteLine(
+                  "==================\n"
+                + string.Format(" FatAntelope v{0}.{1}\n", version.Major, version.Minor)
+                + "==================\n");
+
             if (args == null || args.Length < 3 || args.Length > 4)
             {
-                Console.WriteLine("Error: Unexpected number of paramters." + Environment.NewLine);
-                Console.WriteLine("Usage: FatAntelope source-file target-file output-file [transformed-file]");
-                Console.WriteLine("  source-file : (Input) The original config file");
-                Console.WriteLine("  target-file : (Input) The final config file");
-                Console.WriteLine("  output-file : (Output) The output config transform patch file");
-                Console.WriteLine("  transformed-file : (Optional Output) The config file resulting from applying the output-file to the source-file");
-                Console.WriteLine("                     This file should be semantically equal to the target-file.");
+                Console.WriteLine(
+                      "Error: Unexpected number of paramters.\n"
+                    + "Usage: FatAntelope source-file target-file output-file [transformed-file]\n"
+                    + "  source-file : (Input) The original config file\n"
+                    + "  target-file : (Input) The final config file\n"
+                    + "  output-file : (Output) The output config transform patch file\n"
+                    + "  transformed-file : (Optional Output) The config file resulting from applying the output-file to the source-file\n"
+                    + "                     This file should be semantically equal to the target-file.\n");
                 return (int)ExitCode.InvalidParameters;
             }
 
-            Console.WriteLine("Building xml trees...");
+            Console.WriteLine("- Building xml trees . . .\n");
             var tree1 = BuildTree(args[0]);
             var tree2 = BuildTree(args[1]);
 
-            Console.WriteLine("Comparing xml trees...");
+            Console.WriteLine("- Comparing xml trees . . .\n");
             XDiff.Diff(tree1, tree2);
             if (tree1.Root.Match == MatchType.Match && tree2.Root.Match == MatchType.Match && tree1.Root.Matching == tree2.Root)
             {
-                Console.WriteLine("Warning: No difference found!");
+                Console.WriteLine("Warning: No difference found!\n");
                 return (int)ExitCode.NoDifference;
             }
 
             if (tree1.Root.Match == MatchType.NoMatch || tree2.Root.Match == MatchType.NoMatch)
             {
-                Console.Error.WriteLine("Error: Root nodes must have the same name!");
+                Console.Error.WriteLine("Error: Root nodes must have the same name!\n");
                 return (int)ExitCode.RootNodeMismatch;
             }
 
-            Console.WriteLine("Writing XDT transform...");
+            Console.WriteLine("- Writing XDT transform . . .\n");
             var writer = new XdtDiffWriter();
             var patch = writer.GetDiff(tree2);
             patch.Save(args[2]);
 
             if (args.Length > 3)
             {
-                Console.WriteLine("Applying transform to source...");
+                Console.WriteLine("- Applying transform to source . . .\n");
                 var source = new XmlTransformableDocument();
                 source.Load(args[0]);
 
@@ -68,7 +76,7 @@ namespace FatAntelope.CommandLine
 
                 source.Save(args[3]);
             }
-            Console.WriteLine("Done!");
+            Console.WriteLine("- Finished successfully!\n");
             return (int)ExitCode.Success;
         }
 
