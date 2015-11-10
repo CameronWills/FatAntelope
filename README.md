@@ -23,7 +23,8 @@ Following build, you can use reference the FatAntelope library directly or other
 
 ### Command Line Syntax
 
-```FatAntelope source-file target-file output-file [transformed-file]
+```
+FatAntelope source-file target-file output-file [transformed-file]
 
    source-file : (input) original config file path.  E.g. the development web.config
 
