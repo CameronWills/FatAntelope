@@ -386,6 +386,8 @@ namespace FatAntelope.Writers
                 // Mulitple elements with the same name 
                 if (duplicates.Count > 1)
                 {
+                    XNode poorAttribute = null;
+
                     // try and find unique attribute
                     foreach (var attribute in element.Attributes)
                     {
@@ -408,11 +410,16 @@ namespace FatAntelope.Writers
                         }
 
                         if (unique)
-                            return new Trait() { Attribute = attribute, Index = index };
+                        {
+                            if (attribute.Match != MatchType.Match)
+                                poorAttribute = poorAttribute ?? attribute;
+                            else
+                                return new Trait() { Attribute = attribute, Index = index };
+                        }
                     }
 
                     // No unique attributes, so use index
-                    return new Trait() { Index = index };
+                    return new Trait() { Attribute = poorAttribute, Index = index };
                 }
             }
 
