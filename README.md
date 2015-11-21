@@ -1,6 +1,6 @@
 # FatAntelope
 
-A tool for comparing two .config giles and generating an XDT transform (Microsoft XML Document Transform).
+A tool for comparing two .config files and generating an XDT transform (Microsoft XML Document Transform).
 Useful for creating transforms for existing production web.config or app.config files.
 
 ![FatAntelope](banner.jpg)
