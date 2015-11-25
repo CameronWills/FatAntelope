@@ -13,6 +13,9 @@ that have been updated, inserted or deleted. And then generates a XDT transform 
 The XML diff / comparison algorithm is a C# port of the 'XDiff' algorithm described here: 
 http://pages.cs.wisc.edu/~yuanwang/xdiff.html
 
+## Try It
+A demonstration is setup here: [fatantelopetester.apphb.com](https://fatantelopetester.apphb.com/)
+
 ## Download
 
 Download the command-line tool in [releases](https://github.com/CameronWills/FatAntelope/releases)
