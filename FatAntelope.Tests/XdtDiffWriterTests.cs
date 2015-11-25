@@ -63,6 +63,58 @@ namespace FatAntelope.Tests
             AssertCanTransform(source, target);
         }
 
+        [TestMethod]
+        public void MatchAndReplace()
+        {
+            var source = @"
+                <root>
+                    <child name='child1' type='elem1'>child1</child>
+                    <child name='child2' type='elem2'>child2</child>
+                </root>";
+
+            var target = @"
+                <root>
+                    <child name='child1' type='elem1'>DIFFERENT</child>
+                    <child name='child2' type='elem2'>child2</child>
+                </root>";
+
+            var patch = GetPatch(source, target);
+
+            // Locator = Match(type)
+            AssertLocator(patch.SelectSingleNode("/root/child"), "Match(name)");
+
+            // Transform = SetAttribute(type)
+            AssertTransform(patch.SelectSingleNode("/root/child"), "Replace");
+
+            AssertCanTransform(source, target);
+        }
+
+        [TestMethod]
+        public void ConditionAndReplace()
+        {
+            var source = @"
+                <root>
+                    <child name='child1' type='elem' />
+                    <child name='child2' type='elem' />
+                </root>";
+
+            var target = @"
+                <root>
+                    <child name='DIFFERENT' type='DIFFERENT' />
+                    <child name='child2' type='elem2' />
+                </root>";
+
+            var patch = GetPatch(source, target);
+
+            // Locator = Match(type)
+            AssertLocator(patch.SelectSingleNode("/root/child"), "Condition([@name='child1'])");
+
+            // Transform = SetAttribute(type)
+            AssertTransform(patch.SelectSingleNode("/root/child"), "Replace");
+
+            AssertCanTransform(source, target);
+        }
+
         private void AssertTransform(XmlNode node, string expected)
         {
             Assert.IsNotNull(node);

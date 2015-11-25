@@ -453,7 +453,11 @@ namespace FatAntelope.Writers
 
             // If has attribute changes
             if(attributes.HasChanges())
-            { 
+            {
+                // If all attributes have changed, replace
+                if (attributes.Unchanged == 0 && elements.Total() == 0 && texts.Total() == 0)
+                    return TransformType.Replace;
+                
                 // If only attribute deletes, mark attributes for removal
                 if(attributes.IsDeletesOnly(true))
                     return TransformType.RemoveAttributes;
