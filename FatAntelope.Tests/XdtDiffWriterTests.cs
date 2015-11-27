@@ -107,7 +107,7 @@ namespace FatAntelope.Tests
             var patch = GetPatch(source, target);
 
             // Locator = Match(type)
-            AssertLocator(patch.SelectSingleNode("/root/child"), "Condition([@name='child1'])");
+            AssertLocator(patch.SelectSingleNode("/root/child"), "Condition([(@name='child1')])");
 
             // Transform = SetAttribute(type)
             AssertTransform(patch.SelectSingleNode("/root/child"), "Replace");

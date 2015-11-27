@@ -119,7 +119,7 @@ namespace FatAntelope.Writers
         private const string XdtCondition = "Condition({0})";
         private const string XdtSetAttributes = "SetAttributes({0})";
         private const string XdtRemoveAttributes = "RemoveAttributes({0})";
-        private const string XPathPredicate = "[{0}='{1}']";
+        private const string XPathPredicate = "[({0}='{1}')]";
         private const string XPathIndexPredicate = "[{0}]";
 
         /// <summary>
