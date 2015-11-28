@@ -68,7 +68,7 @@ namespace FatAntelope
         public XNode Matching { get; set; }
 
         /// <summary>
-        /// Type (or strength) of match that this node has with it's 'Match' node
+        /// Type (or strength) of match that this node has with it's 'Matching' node
         /// </summary>
         public MatchType Match { get; set; }
 

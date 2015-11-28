@@ -445,7 +445,7 @@ namespace FatAntelope.Writers
             var attributes = GetCounts(oldElement.Attributes, newElement.Attributes);
             var elements = GetCounts(oldElement.Elements, newElement.Elements);
 
-            // If mostly only element inserts & deletes
+            // If mostly only element inserts & deletes, then replace
             if (elements.Deletes + elements.Inserts > 0 
                 && elements.Unchanged + elements.Updates == 0 
                 && attributes.Unchanged < elements.TotalChanges())

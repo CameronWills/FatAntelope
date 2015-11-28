@@ -45,9 +45,9 @@ namespace FatAntelope
 {
     /// <summary>
     /// The XDiff algorithm for doing an unordered comparison of two xml documents and flaging the changed, inserted and deleted nodes.
-    /// I've ported this algorithm to C#, with some modifications, from the original XDiff algorithm by Yuan Wang described here: 
+    /// A C# port, with some modifications, of the original X-Diff algorithm by Yuan Wang described here: 
     /// http://pages.cs.wisc.edu/~yuanwang/xdiff.html
-    /// The matching algorithm uses the minimum-cost maximum flow algorithm when necessary, to find the minimum-cost bipartite mapping of the two trees. 
+    /// The node matching logic uses the minimum-cost maximum flow algorithm when necessary, to find the minimum-cost bipartite mapping of the two trees. 
     /// This gives an optimal matching of nodes between the two trees.
     /// </summary>
     public class XDiff
@@ -83,7 +83,7 @@ namespace FatAntelope
         }
 
         /// <summary>
-        /// Compare and match the two nodes (and their children).
+        /// Compare and match the two elements (and their children).
         /// </summary>
         private static void DiffElements(XNode node1, XNode node2)
         {
@@ -100,7 +100,7 @@ namespace FatAntelope
                 SetMatching(node2.Attributes, MatchType.NoMatch);
             }
 
-            // Children = Elements and Text
+            // Handle child elements and Text
 
             // First, if no children
             if (node1.Children.Length == 0)

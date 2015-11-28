@@ -52,7 +52,6 @@
     <Compile Include="Utility\ByteArrayComparer.cs" />
     <Compile Include="Utility\Murmur3Hasher.cs" />
     <Compile Include="Writers\BaseDiffWriter.cs" />
-    <Compile Include="Writers\DebugDiffWriter.cs" />
     <Compile Include="Writers\XdtDiffWriter.cs" />
     <Compile Include="XDiff.cs" />
     <Compile Include="XNode.cs" />

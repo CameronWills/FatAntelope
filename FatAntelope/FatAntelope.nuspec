@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>$title$</id>
+    <version>$version$</version>
+    <title>$title$</title>
+    <authors>Cameron Wills</authors>
+    <owners>Cameron Wills</owners>
+    <licenseUrl>https://raw.githubusercontent.com/CameronWills/FatAntelope/master/LICENSE.md</licenseUrl>
+    <projectUrl>https://github.com/CameronWills/FatAntelope</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>$description$</description>
+    <releaseNotes>Minor bug fixes and improvements to XDT output.</releaseNotes>
+    <tags>xdt config transform xml diff compare diffgram tree comparison cheetah slowcheetah</tags>
+  </metadata>
+</package>
