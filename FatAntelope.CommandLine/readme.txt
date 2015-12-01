@@ -1,5 +1,6 @@
-﻿FatAntelope V0.2 README file
+﻿FatAntelope V0.2.3 README file
 ==============================
+https://github.com/CameronWills/FatAntelope
 
 1. What is FatAntelope
 2. Syntax
