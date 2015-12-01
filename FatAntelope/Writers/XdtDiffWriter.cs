@@ -119,6 +119,8 @@ namespace FatAntelope.Writers
         private const string XdtCondition = "Condition({0})";
         private const string XdtSetAttributes = "SetAttributes({0})";
         private const string XdtRemoveAttributes = "RemoveAttributes({0})";
+        private const string XdtInsertBefore = "InsertBefore({0}/*[1])";
+        private const string XdtInsertAfter = "InsertAfter({0}/{1}{2})";
         private const string XPathPredicate = "[({0}='{1}')]";
         private const string XPathIndexPredicate = "[{0}]";
 
@@ -137,7 +139,7 @@ namespace FatAntelope.Writers
         public XmlDocument GetDiff(XTree tree)
         {
             var doc = new XmlDocument();
-            var root = WriteElement(tree.Root.Matching, tree.Root, doc, string.Empty);
+            var root = WriteElement(tree.Root.Matching, tree.Root, doc, string.Empty, 1);
 
             var attr = doc.CreateAttribute(XmlNamespace, XdtPrefix, XmlNamespaceUri);
             attr.Value = XdtNamespace;
@@ -149,37 +151,42 @@ namespace FatAntelope.Writers
         /// <summary>
         /// Append the changed element to the new config transform. The given element may have been updated, inserted or deleted.
         /// </summary>
-        private XmlNode WriteElement(XNode oldElement, XNode newElement, XmlNode target, string path)
+        private XmlNode WriteElement(XNode oldElement, XNode newElement, XmlNode target, string path, int index)
         {
-
             XmlNode element = null;
             var transform = GetTransformType(oldElement, newElement);
-            if (transform == TransformType.Insert)  // Insert
+
+            // Insert
+            if (transform == TransformType.Insert)  
             {
                 element = CopyNode(newElement, target);
-                AddTransform(element, transform.ToString());
+                var insertTransform = GetInsertTransform(newElement, path, index);
+                AddTransform(element, insertTransform);
                 return element;
             }
 
             var trait = GetUniqueTrait(oldElement);
-            path = GetPath(path, oldElement, trait);
 
-            if (transform == TransformType.Replace)  // Replace
+            // Replace
+            if (transform == TransformType.Replace)  
             {
                 element = CopyNode(newElement, target);
                 AddTransform(element, transform.ToString());
                 AddLocator(element, oldElement, trait, false, transform);
                 return element;
             }
-
             element = AddElement(target, oldElement);
             AddLocator(element, oldElement, trait, true, transform);
-            if (transform == TransformType.Remove)  // Remove
+
+            // Remove
+            if (transform == TransformType.Remove)  
             {
                 AddTransform(element, TransformType.Remove.ToString());
                 return element;
             }
-            else if (transform == TransformType.RemoveAttributes || transform == TransformType.RemoveAndSetAttributes)  // RemoveAttributes
+
+            // RemoveAttributes
+            else if (transform == TransformType.RemoveAttributes || transform == TransformType.RemoveAndSetAttributes) 
             {
                 var builder = new StringBuilder();
                 var first = true;
@@ -198,17 +205,21 @@ namespace FatAntelope.Writers
                     AddTransform(element2, string.Format(XdtSetAttributes, attributeList));
                 }
             }
-            else if (transform == TransformType.SetAttributes)  // SetAttributes
+
+            // SetAttributes
+            else if (transform == TransformType.SetAttributes)  
             {
                 var attributeList = CopyAttributes(newElement, element);
                 AddTransform(element, string.Format(XdtSetAttributes, attributeList));
             }
             
             // Finally, process child elements
-            foreach (var child in newElement.Elements)
+            path = GetPath(path, oldElement, trait);
+            for (var i = 0; i < newElement.Elements.Length; i++ )
             {
+                var child = newElement.Elements[i];
                 if (child.Match == MatchType.Change || child.Match == MatchType.NoMatch)
-                    WriteElement(child.Matching, child, element, path);
+                    WriteElement(child.Matching, child, element, path, i);
             }
             
             // Remove elements that dont exist in the target config
@@ -218,7 +229,7 @@ namespace FatAntelope.Writers
             foreach(var child in oldElement.Elements.Reverse())
             {
                 if (child.Match == MatchType.NoMatch)
-                    WriteElement(child, null, element, path);
+                    WriteElement(child, null, element, path, 0);
             }
 
             return element;
@@ -359,6 +370,36 @@ namespace FatAntelope.Writers
         private XmlAttribute AddTransform(XmlNode element, string value)
         {
             return AddAttribute(element, XdtPrefix, XdtTransform, XdtNamespace, value);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private string GetInsertTransform(XNode element, string path, int index)
+        {
+            var parent = element.Parent;
+
+            // If only element, or last element, then use 'Insert'
+            if (parent == null || parent.Elements.Length < 2 || parent.Elements.Length == index + 1)
+                return TransformType.Insert.ToString();
+
+            // If first element, use 'InsertBefore'
+            if (index == 0)
+                return string.Format(XdtInsertBefore, path);
+
+            // Otherwise use 'InsertAfter'
+            var previous = parent.Elements[index - 1];
+            var trait = GetUniqueTrait(previous);
+            if (trait != null)
+            {
+                if (trait.Attribute != null)
+                    return string.Format(XdtInsertAfter, path, previous.Name, BuildPredicate(trait.Attribute.XmlNode));
+
+                if (trait.Index > 0)
+                    return string.Format(XdtInsertAfter, path, previous.Name, string.Format(XPathIndexPredicate, trait.Index));
+            }
+
+            return string.Format(XdtInsertAfter, path, previous.Name, string.Empty);
         }
 
         /// <summary>

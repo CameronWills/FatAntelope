@@ -64,6 +64,141 @@ namespace FatAntelope.Tests
         }
 
         [TestMethod]
+        public void InsertBefore()
+        {
+            var source = @"
+                <root>
+                    <child name='child1' type='elem1' />
+                    <child name='child2' type='elem2' />
+                </root>";
+
+            var target = @"
+                <root>
+                    <clear />
+                    <child name='DIFFERENT' type='elem1' />
+                    <child name='child2' type='elem2' />
+                </root>";
+
+            var patch = GetPatch(source, target);
+
+            // Locator = none
+            AssertNoLocator(patch.SelectSingleNode("/root/clear"));
+
+            // Transform = SetAttribute(type)
+            AssertTransform(patch.SelectSingleNode("/root/clear"), "InsertBefore(/root/*[1])");
+
+            AssertCanTransform(source, target);
+        }
+
+        [TestMethod]
+        public void InsertAfterAttribute()
+        {
+            var source = @"
+                <root>
+                    <child name='child1' type='elem1' />
+                    <child name='child2' type='elem2' />
+                </root>";
+
+            var target = @"
+                <root>
+                    <child name='DIFFERENT' type='elem1' />
+                    <clear all='true' />
+                    <child name='child2' type='elem2' />
+                </root>";
+
+            var patch = GetPatch(source, target);
+
+            // Locator = none
+            AssertNoLocator(patch.SelectSingleNode("/root/clear"));
+
+            // Transform = SetAttribute(type)
+            AssertTransform(patch.SelectSingleNode("/root/clear"), "InsertAfter(/root/child[(@type='elem1')])");
+
+            AssertCanTransform(source, target);
+        }
+
+        [TestMethod]
+        public void InsertAfterIndex()
+        {
+            var source = @"
+                <root>
+                    <child />
+                    <child />
+                </root>";
+
+            var target = @"
+                <root>
+                    <child />
+                    <clear all='true' />
+                    <child />
+                </root>";
+
+            var patch = GetPatch(source, target);
+
+            // Locator = none
+            AssertNoLocator(patch.SelectSingleNode("/root/clear"));
+
+            // Transform = SetAttribute(type)
+            AssertTransform(patch.SelectSingleNode("/root/clear"), "InsertAfter(/root/child[1])");
+
+            AssertCanTransform(source, target);
+        }
+
+        [TestMethod]
+        public void InsertAfterSimple()
+        {
+            var source = @"
+                <root>
+                    <child1 />
+                    <child3 />
+                </root>";
+
+            var target = @"
+                <root>
+                    <child1 />
+                    <clear all='true' />
+                    <child3 />
+                </root>";
+
+            var patch = GetPatch(source, target);
+
+            // Locator = none
+            AssertNoLocator(patch.SelectSingleNode("/root/clear"));
+
+            // Transform = SetAttribute(type)
+            AssertTransform(patch.SelectSingleNode("/root/clear"), "InsertAfter(/root/child1)");
+
+            AssertCanTransform(source, target);
+        }
+
+        [TestMethod]
+        public void InsertEnd()
+        {
+            var source = @"
+                <root>
+                    <child1 />
+                    <child3 />
+                </root>";
+
+            var target = @"
+                <root>
+                    <child1 />
+                    <child3 />
+                    <clear all='true' />
+                </root>";
+
+            var patch = GetPatch(source, target);
+
+            // Locator = none
+            AssertNoLocator(patch.SelectSingleNode("/root/clear"));
+
+            // Transform = SetAttribute(type)
+            AssertTransform(patch.SelectSingleNode("/root/clear"), "Insert");
+
+            AssertCanTransform(source, target);
+        }
+
+        [TestMethod]
         public void MatchAndReplace()
         {
             var source = @"
