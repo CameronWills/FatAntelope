@@ -25,7 +25,7 @@ Download the command-line tool in [releases](https://github.com/CameronWills/Fat
 
 ## Usage
 
-Following build, you can use reference the FatAntelope library directly or otherwise run the command-line tool
+Following build, you can use reference the FatAntelope.Core library directly or otherwise run the command-line tool
 
 ### Command Line Syntax
 
