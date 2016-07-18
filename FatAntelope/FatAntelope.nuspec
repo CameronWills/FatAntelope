@@ -10,7 +10,6 @@
     <projectUrl>https://github.com/CameronWills/FatAntelope</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
-    <releaseNotes>Added support for InsertBefore and InsertAfter transforms.</releaseNotes>
     <tags>xdt config transform xml diff compare diffgram tree comparison cheetah slowcheetah</tags>
   </metadata>
 </package>

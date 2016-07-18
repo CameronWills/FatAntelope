@@ -1,4 +1,4 @@
-﻿FatAntelope V0.2.3 README file
+﻿FatAntelope README file
 ==============================
 https://github.com/CameronWills/FatAntelope
 
