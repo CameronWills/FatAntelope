@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml;
+﻿using System.Xml;
 
 namespace FatAntelope
 {
+
+    /// <summary>
+    /// Top level container of the XTree. Stores metadata about the XML document and it's root node
+    /// </summary>
     public class XTree
     {
         public XmlDocument Document { get; set; }

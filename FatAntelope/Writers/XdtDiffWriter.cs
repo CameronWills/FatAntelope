@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
 
 namespace FatAntelope.Writers
@@ -165,7 +163,7 @@ namespace FatAntelope.Writers
                 return element;
             }
 
-            var trait = GetUniqueTrait(oldElement);
+            var trait = GetUniqueTrait(oldElement) ?? GetUniqueTrait(newElement);
 
             // Replace
             if (transform == TransformType.Replace)  
@@ -373,7 +371,7 @@ namespace FatAntelope.Writers
         }
 
         /// <summary>
-        /// 
+        /// Construct the xdt:Transform value for element insertion
         /// </summary>
         private string GetInsertTransform(XNode element, string path, int index)
         {

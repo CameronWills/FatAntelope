@@ -1,8 +1,6 @@
-﻿using System;
-using System.Xml;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq;
-using FatAntelope;
+using System.Xml;
 
 namespace FatAntelope.Tests
 {

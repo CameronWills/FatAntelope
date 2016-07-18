@@ -1,10 +1,8 @@
-﻿using System;
-using System.Xml;
+﻿using FatAntelope.Writers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Linq;
-using FatAntelope;
 using Microsoft.Web.XmlTransform;
-using FatAntelope.Writers;
+using System.Linq;
+using System.Xml;
 
 namespace FatAntelope.Tests
 {
@@ -86,6 +84,35 @@ namespace FatAntelope.Tests
 
             // Transform = SetAttribute(type)
             AssertTransform(patch.SelectSingleNode("/root/clear"), "InsertBefore(/root/*[1])");
+
+            AssertCanTransform(source, target);
+        }
+
+        [TestMethod]
+        public void InsertBeforeSingle()
+        {
+            var source = @"
+                <root>
+                    <child name='child2' value='123abc' />
+                </root>";
+
+            var target = @"
+                <root>
+                    <child name='child1' value='elem1' />
+                    <child name='child2' value='456xyz' />
+                </root>";
+
+            var patch = GetPatch(source, target);
+
+            // Values
+            AssertValue(patch.SelectSingleNode("/root/child[1]/@name"), "child1");
+            AssertValue(patch.SelectSingleNode("/root/child[2]/@name"), "child2");
+
+            // Transform = InsertBefore
+            AssertTransform(patch.SelectSingleNode("/root/child[1]"), "InsertBefore(/root/*[1])");
+
+            // Transform = SetAttributes
+            AssertTransform(patch.SelectSingleNode("/root/child[2]"), "SetAttributes(value)");
 
             AssertCanTransform(source, target);
         }
@@ -255,6 +282,12 @@ namespace FatAntelope.Tests
             Assert.IsNotNull(node);
             var value = node.SelectSingleNode("@*[local-name() = 'Transform']").Value;
             Assert.AreEqual(expected, value);
+        }
+
+        private void AssertValue(XmlNode node, string expected)
+        {
+            Assert.IsNotNull(node);
+            Assert.AreEqual(expected, node.Value);
         }
 
         private void AssertLocator(XmlNode node, string expected)

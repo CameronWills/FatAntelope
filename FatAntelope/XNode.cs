@@ -1,9 +1,6 @@
 ﻿using FatAntelope.Utility;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
 
 namespace FatAntelope
@@ -18,6 +15,9 @@ namespace FatAntelope
         NoMatch
     }
     
+    /// <summary>
+    /// Represents a single XNode within the XTree. Maps to a single XML element, attribute or text node within the underlying XML document.
+    /// </summary>
     public class XNode
     {
         private static XNode[] Empty = new XNode[] { };

@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace FatAntelope.Utility
 {
@@ -21,7 +18,7 @@ namespace FatAntelope.Utility
         private const ulong C2 = 0x4cf5ad432745937fL;
  
         private ulong length;
-        private uint seed; // if want to start with a seed, create a constructor
+        private uint seed = default(uint); // if want to start with a seed, create a constructor
         ulong h1;
         ulong h2;
 
