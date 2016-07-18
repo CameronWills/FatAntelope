@@ -3,7 +3,10 @@
 A tool for comparing two .config files and generating an XDT transform (Microsoft XML Document Transform).
 Useful for creating transforms for existing production web.config or app.config files.
 
-![FatAntelope](banner.jpg)
+[![Build status](https://ci.appveyor.com/api/projects/status/iii1m7n3cdq3v5xm?svg=true)](https://ci.appveyor.com/project/CameronWills/fatantelope)
+[![Release](https://img.shields.io/github/release/CameronWills/fatantelope.svg)](https://github.com/CameronWills/FatAntelope/releases/latest)
+[![NuGet](https://buildstats.info/nuget/fatantelope)](https://www.nuget.org/packages/FatAntelope/)
+[![Stars](https://img.shields.io/github/stars/CameronWills/fatantelope.svg)](https://github.com/CameronWills/FatAntelope/stargazers)
 
 ## How it works
 
@@ -100,3 +103,5 @@ Patch File (app.release.config) :
 - The generated XDT transform may not have the most optimal values for the xdt:Locator and xdt:Transform attributes. I recommend only using this output as a starting-point for your transforms.
 
 - The XML comparison algorithm used (XDiff) does an unordered comparison of XML nodes, so changes to child elements' position within the same parent will be ignored.
+
+![FatAntelope](banner.jpg)
