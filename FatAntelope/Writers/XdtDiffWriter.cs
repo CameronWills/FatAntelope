@@ -405,10 +405,10 @@ namespace FatAntelope.Writers
         /// </summary>
         private Trait GetUniqueTrait(XNode element)
         {
-            var duplicates = new List<XNode>();
-            var parent = element.Parent;
-            if (parent != null)
+            if (element != null && element.Parent != null)
             {
+                var parent = element.Parent;
+                var duplicates = new List<XNode>();
                 var index = -1;
 
                 // Check for siblings with the same name

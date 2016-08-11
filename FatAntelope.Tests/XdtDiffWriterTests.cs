@@ -226,6 +226,97 @@ namespace FatAntelope.Tests
         }
 
         [TestMethod]
+        public void RemoveWithNoLocator()
+        {
+            var source = @"
+                <root>
+                    <child1 />
+                    <child3 />
+                </root>";
+
+            var target = @"
+                <root>
+                    <child1 />
+                </root>";
+
+            var patch = GetPatch(source, target);
+
+            // Locator = none
+            AssertNoLocator(patch.SelectSingleNode("/root/child3"));
+
+            // Transform = SetAttribute(type)
+            AssertTransform(patch.SelectSingleNode("/root/child3"), "Remove");
+
+            AssertCanTransform(source, target);
+        }
+
+        [TestMethod]
+        public void RemoveWithMatchLocator()
+        {
+            var source = @"
+                <root>
+                    <child name='child1' />
+                    <child name='child2' />
+                </root>";
+
+            var target = @"
+                <root>
+                    <child name='child1' />
+                </root>";
+
+            var patch = GetPatch(source, target);
+
+            // Locator = Match(name
+            AssertLocator(patch.SelectSingleNode("/root/child[(@name='child2')]"), "Match(name)");
+
+            Assert.AreEqual(patch.SelectSingleNode("/root").ChildNodes.Count, 1);
+
+            // Transform = SetAttribute(type)
+            AssertTransform(patch.SelectSingleNode("/root/child[(@name='child2')]"), "Remove");
+
+            AssertCanTransform(source, target);
+        }
+
+        [TestMethod]
+        public void RemoveAndChangeAttributes()
+        {
+            var source = @"
+                <root>
+                    <child name='child1' test='true' optional='value' />
+                    <child name='child2' test='true' optional='value' />
+                </root>";
+
+            var target = @"
+                <root>
+                    <child name='child1' test='false' optional='value' />
+                    <child name='child2' test='false' />
+                </root>";
+
+            var patch = GetPatch(source, target);
+
+            
+            // Two transform nodes for the same child
+            Assert.AreEqual(patch.SelectSingleNode("/root").ChildNodes.Count, 3);
+            Assert.AreEqual(patch.SelectNodes("/root/child[(@name='child2')]").Count, 2);
+
+            // First child has single attribute changed (test='false')
+            AssertLocator(patch.SelectSingleNode("/root/child[(@name='child1')]"), "Match(name)");
+            AssertTransform(patch.SelectSingleNode("/root/child[(@name='child1')]"), "SetAttributes(test)");
+            AssertValue(patch.SelectSingleNode("/root/child[(@name='child1')]/@test"), "false");
+
+            // Second child has both attribute changed (test='false') and attribute removed (optional='value')
+            AssertLocator(patch.SelectSingleNode("/root/child[2]"), "Match(name)");
+            AssertValue(patch.SelectSingleNode("/root/child[2]/@name"), "child2");
+            AssertTransform(patch.SelectSingleNode("/root/child[2]"), "RemoveAttributes(optional)");
+
+            AssertLocator(patch.SelectSingleNode("/root/child[3]"), "Match(name)");
+            AssertValue(patch.SelectSingleNode("/root/child[3]/@name"), "child2");
+            AssertTransform(patch.SelectSingleNode("/root/child[3]"), "SetAttributes(test)");
+
+            AssertCanTransform(source, target);
+        }
+
+        [TestMethod]
         public void MatchAndReplace()
         {
             var source = @"
@@ -277,11 +368,26 @@ namespace FatAntelope.Tests
             AssertCanTransform(source, target);
         }
 
+        #region Private helpers
+
         private void AssertTransform(XmlNode node, string expected)
         {
-            Assert.IsNotNull(node);
-            var value = node.SelectSingleNode("@*[local-name() = 'Transform']").Value;
-            Assert.AreEqual(expected, value);
+            AssertAttribute(node, expected, "Transform");
+        }
+
+        private void AssertNoTransform(XmlNode node)
+        {
+            AssertNoAttribute(node, "Transform");
+        }
+
+        private void AssertLocator(XmlNode node, string expected)
+        {
+            AssertAttribute(node, expected, "Locator");
+        }
+
+        private void AssertNoLocator(XmlNode node)
+        {
+            AssertNoAttribute(node, "Locator");
         }
 
         private void AssertValue(XmlNode node, string expected)
@@ -290,18 +396,18 @@ namespace FatAntelope.Tests
             Assert.AreEqual(expected, node.Value);
         }
 
-        private void AssertLocator(XmlNode node, string expected)
+        private void AssertAttribute(XmlNode node, string expected, string attributeName)
         {
             Assert.IsNotNull(node);
-            var value = node.SelectSingleNode("@*[local-name() = 'Locator']").Value;
+            var value = node.SelectSingleNode(string.Format("@*[local-name() = '{0}']", attributeName)).Value;
             Assert.AreEqual(expected, value);
         }
 
-        private void AssertNoLocator(XmlNode node)
+        private void AssertNoAttribute(XmlNode node, string attributeName)
         {
             Assert.IsNotNull(node);
-            var attribute = node.SelectSingleNode("@*[local-name() = 'Locator']");
-            Assert.IsNull(attribute);
+            var attribute = node.SelectSingleNode(string.Format("@*[local-name() = '{0}']", attributeName));
+            Assert.IsNull(attribute, string.Format("Attribute not expected: {0}", attributeName));
         }
 
         private void AssertCanTransform(string sourceXml, string targetXml)
@@ -354,5 +460,7 @@ namespace FatAntelope.Tests
 
             return source;
         }
+
+        #endregion
     }
 }
