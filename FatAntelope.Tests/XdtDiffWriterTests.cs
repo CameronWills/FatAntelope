@@ -89,6 +89,82 @@ namespace FatAntelope.Tests
         }
 
         [TestMethod]
+        public void InsertChildWithParentChange()
+        {
+            // Insert a child element into a parent element that has a change affecting its unique trait.
+
+            var source = @"
+                <root>
+                    <parent name='parent1'>
+                        <child name='child1' />
+                        <child name='child3' />
+                    </parent>
+                    <parent name='parent2'>
+                        <child name='child1' />
+                        <child name='child2' />
+                    </parent>
+                </root>";
+
+            var target = @"
+                <root>
+                    <parent name='DIFFERENT'>
+                        <child name='child1' />
+                        <child name='child2' />
+                        <child name='child3' />
+                    </parent>
+                    <parent name='parent2'>
+                        <child name='child1' />
+                        <child name='child2' />
+                    </parent>
+                </root>";
+
+            var patch = GetPatch(source, target);
+
+            AssertLocator(patch.SelectSingleNode("/root/parent[1]"), "Condition(1)");
+            AssertTransform(patch.SelectSingleNode("/root/parent[1]"), "SetAttributes(name)");
+            AssertTransform(patch.SelectSingleNode("/root/parent[1]/child[1]"), "InsertAfter(/root/parent[(@name='DIFFERENT')]/child[(@name='child1')])");
+
+            AssertCanTransform(source, target);
+        }
+
+        [TestMethod]
+        public void InsertChildWithParentChangeDuplicate()
+        {
+            var source = @"
+                <root>
+                    <parent name='parent1'>
+                        <child name='child1' />
+                        <child name='child3' />
+                    </parent>
+                    <parent name='parent2'>
+                        <child name='child1' />
+                        <child name='child2' />
+                    </parent>
+                </root>";
+
+            var target = @"
+                <root>
+                    <parent name='parent2'>
+                        <child name='child1' />
+                        <child name='child2' />
+                        <child name='child3' />
+                    </parent>
+                    <parent name='parent2'>
+                        <child name='child1' />
+                        <child name='child2' />
+                    </parent>
+                </root>";
+
+            var patch = GetPatch(source, target);
+
+            AssertLocator(patch.SelectSingleNode("/root/parent[1]"), "Condition(1)");
+            AssertTransform(patch.SelectSingleNode("/root/parent[1]"), "SetAttributes(name)");
+            AssertTransform(patch.SelectSingleNode("/root/parent[1]/child[1]"), "InsertAfter(/root/parent[1]/child[(@name='child1')])");
+
+            AssertCanTransform(source, target);
+        }
+
+        [TestMethod]
         public void InsertBeforeSingle()
         {
             var source = @"

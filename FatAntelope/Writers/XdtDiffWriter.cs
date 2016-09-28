@@ -78,13 +78,17 @@ namespace FatAntelope.Writers
         {
             public int Index { get; set; }
             public XNode Attribute { get; set; }
-            //public XNode Element { get; set; }
-            //public string Value { get; set; }
+            public bool UniqueInBoth { get; set; }
 
-            public Trait()
+            public Trait(int index = 0, XNode attribute = null, bool uniqueInBoth = false)
             {
                 Index = -1;
+                Index = index;
+                Attribute = attribute;
+                UniqueInBoth = uniqueInBoth;
             }
+
+
         }
 
         #endregion
@@ -163,18 +167,20 @@ namespace FatAntelope.Writers
                 return element;
             }
 
-            var trait = GetUniqueTrait(oldElement) ?? GetUniqueTrait(newElement);
+            // Get the uniquely identifiable trait for the element, in both old and new trees
+            var newTrait = GetUniqueTrait(newElement);
+            var oldTrait = GetUniqueTrait(oldElement) ?? newTrait;
 
             // Replace
             if (transform == TransformType.Replace)  
             {
                 element = CopyNode(newElement, target);
                 AddTransform(element, transform.ToString());
-                AddLocator(element, oldElement, trait, false, transform);
+                AddLocator(element, oldElement, oldTrait, false, transform);
                 return element;
             }
             element = AddElement(target, oldElement);
-            AddLocator(element, oldElement, trait, true, transform);
+            AddLocator(element, oldElement, oldTrait, true, transform);
 
             // Remove
             if (transform == TransformType.Remove)  
@@ -198,7 +204,7 @@ namespace FatAntelope.Writers
                 if (transform == TransformType.RemoveAndSetAttributes)   // RemoveAndSetAttributes
                 {
                     var element2 = AddElement(target, oldElement);
-                    AddLocator(element2, oldElement, trait, true, transform);
+                    AddLocator(element2, oldElement, oldTrait, true, transform);
                     var attributeList = CopyAttributes(newElement, element2);
                     AddTransform(element2, string.Format(XdtSetAttributes, attributeList));
                 }
@@ -210,9 +216,18 @@ namespace FatAntelope.Writers
                 var attributeList = CopyAttributes(newElement, element);
                 AddTransform(element, string.Format(XdtSetAttributes, attributeList));
             }
-            
-            // Finally, process child elements
-            path = GetPath(path, oldElement, trait);
+
+            // Before processing child elements, update the trait attribute, as it could have 
+            //  changed after a transformation was applied to this node.
+            if (oldTrait != null && oldTrait.Attribute != null && oldTrait.Attribute.Match != MatchType.Match)
+            {
+                oldTrait.Attribute = (newTrait != null && newTrait.UniqueInBoth)
+                    ? newTrait.Attribute
+                    : null;
+            }
+
+            // Process child elements
+            path = GetPath(path, oldElement, oldTrait);
             for (var i = 0; i < newElement.Elements.Length; i++ )
             {
                 var child = newElement.Elements[i];
@@ -401,7 +416,7 @@ namespace FatAntelope.Writers
         }
 
         /// <summary>
-        /// Calculate unique traits for the given element  - unique index or attribute
+        /// Calculate unique traits for the given element - unique index and/or attribute
         /// </summary>
         private Trait GetUniqueTrait(XNode element)
         {
@@ -409,6 +424,7 @@ namespace FatAntelope.Writers
             {
                 var parent = element.Parent;
                 var duplicates = new List<XNode>();
+                var pairedDuplicates = new List<XNode>();
                 var index = -1;
 
                 // Check for siblings with the same name
@@ -422,47 +438,63 @@ namespace FatAntelope.Writers
                     }
                 }
 
+                // Check for siblings in the other tree with the same name
+                if(parent.Matching != null)
+                {
+                    foreach (var child in parent.Matching.Elements)
+                    {
+                        if (child.Name == element.Name && child.Matching != element)
+                            pairedDuplicates.Add(child);
+                    }
+                }
+
                 // Mulitple elements with the same name 
                 if (duplicates.Count > 1)
                 {
                     XNode poorAttribute = null;
+                    bool uniqueInBoth = false;
 
                     // try and find unique attribute
                     foreach (var attribute in element.Attributes)
                     {
-                        var value = attribute.XmlNode.Value;
-                        var unique = true;
-                        foreach (var child in duplicates)
+                        if(IsUnique(duplicates, attribute))
                         {
-                            foreach (var childAttr in child.Attributes)
-                            {
-                                if (childAttr.Name == attribute.Name)
-                                {
-                                    if (value == childAttr.XmlNode.Value && childAttr != attribute)
-                                        unique = false;
-                                    break;
-                                }
-                            }
+                            uniqueInBoth = IsUnique(pairedDuplicates, attribute);
 
-                            if (!unique)
-                                break;
-                        }
-
-                        if (unique)
-                        {
                             if (attribute.Match != MatchType.Match)
                                 poorAttribute = poorAttribute ?? attribute;
                             else
-                                return new Trait() { Attribute = attribute, Index = index };
+                                return new Trait(index, attribute, uniqueInBoth);
                         }
                     }
 
-                    // No unique attributes, so use index
-                    return new Trait() { Attribute = poorAttribute, Index = index };
+                    return new Trait(index, poorAttribute, uniqueInBoth);
                 }
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Determine if the attribute has a unique value amongst its element peers (having the same element name)
+        /// </summary>
+        private bool IsUnique(List<XNode> duplicates, XNode attribute)
+        {
+            var value = attribute.XmlNode.Value;
+
+            foreach (var child in duplicates)
+            {
+                foreach (var childAttr in child.Attributes)
+                {
+                    if (childAttr.Name == attribute.Name)
+                    {
+                        if (value == childAttr.XmlNode.Value && childAttr != attribute)
+                            return false;
+                    }
+                }
+            }
+
+            return true;
         }
 
         /// <summary>
