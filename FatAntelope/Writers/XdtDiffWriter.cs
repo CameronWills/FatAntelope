@@ -226,23 +226,41 @@ namespace FatAntelope.Writers
                     : null;
             }
 
-            // Process child elements
+            // Calculate xpath to current element for use in child node changes
             path = GetPath(path, oldElement, oldTrait);
+
+            // Process 'changed' child elements first
             for (var i = 0; i < newElement.Elements.Length; i++ )
             {
                 var child = newElement.Elements[i];
-                if (child.Match == MatchType.Change || child.Match == MatchType.NoMatch)
+                if (child.Match == MatchType.Change)
                     WriteElement(child.Matching, child, element, path, i);
             }
-            
-            // Remove elements that dont exist in the target config
-            // HACK: Reverse to remove from the end first, this prevents the condition when using 
-            //  positional predicates to remove child[1] and then try also to remove child[2],
-            //  however, it has now moved up into position [1].
-            foreach(var child in oldElement.Elements.Reverse())
+
+            // Process 'inserted' and 'removed' child elements together in reverse
+            var newElements = newElement.Elements;
+            var oldElements = oldElement.Elements;
+            var max = newElements.Length > oldElements.Length
+                ? newElements.Length
+                : oldElements.Length;
+
+            for (var i = max - 1; i >= 0; i--)
             {
-                if (child.Match == MatchType.NoMatch)
-                    WriteElement(child, null, element, path, 0);
+                // Remove child element
+                if(oldElements.Length > i)
+                {
+                    var remove = oldElements[i];
+                    if (remove.Match == MatchType.NoMatch)
+                        WriteElement(remove, null, element, path, 0);
+                }
+
+                // Insert child element
+                if (newElements.Length > i)
+                {
+                    var insert = newElements[i];
+                    if (insert.Match == MatchType.NoMatch)
+                        WriteElement(insert.Matching, insert, element, path, i);
+                }
             }
 
             return element;

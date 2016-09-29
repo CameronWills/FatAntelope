@@ -89,6 +89,64 @@ namespace FatAntelope.Tests
         }
 
         [TestMethod]
+        public void InsertFollowedByParentChange()
+        {
+            // Insert a child element into a parent element that has a change affecting its unique trait.
+
+            var source = @"
+                <root>
+                  <parent name='elem1' />
+                  <parent name='elem3'>
+                    <child name='child1' />
+                    <child name='child3' />
+                  </parent>
+                </root>";
+
+            var target = @"
+                <root>
+                  <parent name='elem1' />
+                  <parent name='elem2' />
+                  <parent name='DIFFERENT'>
+                    <child name='child1' />
+                    <child name='child2' />
+                    <child name='child3' />
+                  </parent>
+                </root>";
+
+            var patch = GetPatch(source, target);
+
+            AssertCanTransform(source, target);
+        }
+
+        [TestMethod]
+        public void InsertAndRemove()
+        {
+            // Insert a child element into a parent element that has a change affecting its unique trait.
+
+            var source = @"
+                <root>
+                  <type1 />
+                  <type1 />
+                  <type1 />
+                  <type1 />
+                </root>";
+
+            var target = @"
+                <root>
+                  <type1 />
+                  <type1 />
+                  <type2 />
+                  <type1 />
+                  <type2 />
+                  <type2 />
+                </root>";
+
+            var patch = GetPatch(source, target);
+
+            AssertCanTransform(source, target);
+        }
+
+        [TestMethod]
         public void InsertChildWithParentChange()
         {
             // Insert a child element into a parent element that has a change affecting its unique trait.
@@ -181,14 +239,14 @@ namespace FatAntelope.Tests
             var patch = GetPatch(source, target);
 
             // Values
-            AssertValue(patch.SelectSingleNode("/root/child[1]/@name"), "child1");
-            AssertValue(patch.SelectSingleNode("/root/child[2]/@name"), "child2");
-
-            // Transform = InsertBefore
-            AssertTransform(patch.SelectSingleNode("/root/child[1]"), "InsertBefore(/root/*[1])");
+            AssertValue(patch.SelectSingleNode("/root/child[1]/@name"), "child2");
+            AssertValue(patch.SelectSingleNode("/root/child[2]/@name"), "child1");
 
             // Transform = SetAttributes
-            AssertTransform(patch.SelectSingleNode("/root/child[2]"), "SetAttributes(value)");
+            AssertTransform(patch.SelectSingleNode("/root/child[1]"), "SetAttributes(value)");
+
+            // Transform = InsertBefore
+            AssertTransform(patch.SelectSingleNode("/root/child[2]"), "InsertBefore(/root/*[1])");
 
             AssertCanTransform(source, target);
         }
