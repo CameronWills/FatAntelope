@@ -128,7 +128,7 @@ namespace FatAntelope
             if (node.NodeType == XmlNodeType.Attribute)
             {
                 var xnode = new XNode(node, parent);
-                xnode.Name = node.Name.ToLowerInvariant();
+                xnode.Name = node.Name;
                 var name = "@" + xnode.Name;
                 xnode.Hash = Murmur3Hasher.HashString(name + "/" + (node.Value ?? string.Empty));
                 return xnode;
@@ -146,7 +146,7 @@ namespace FatAntelope
             else if (node.NodeType == XmlNodeType.Element)
             {
                 var xnode = new XNode(node, parent);
-                var name = node.Name.ToLowerInvariant();
+                var name = node.Name;
                 xnode.Name = name;
                 var hashes = new List<byte[]>();
                 hashes.Add(Murmur3Hasher.HashString(name + "/"));

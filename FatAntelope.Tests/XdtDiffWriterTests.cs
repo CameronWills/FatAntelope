@@ -94,24 +94,24 @@ namespace FatAntelope.Tests
             // Insert a child element into a parent element that has a change affecting its unique trait.
 
             var source = @"
-                <root>
-                  <parent name='elem1' />
-                  <parent name='elem3'>
-                    <child name='child1' />
-                    <child name='child3' />
-                  </parent>
-                </root>";
+                <rootNode>
+                  <parentNode nameNode='elem1' />
+                  <parentNode nameNode='elem3'>
+                    <childNode nameNode='child1' />
+                    <childNode nameNode='child3' />
+                  </parentNode>
+                </rootNode>";
 
             var target = @"
-                <root>
-                  <parent name='elem1' />
-                  <parent name='elem2' />
-                  <parent name='DIFFERENT'>
-                    <child name='child1' />
-                    <child name='child2' />
-                    <child name='child3' />
-                  </parent>
-                </root>";
+                <rootNode>
+                  <parentNode nameNode='elem1' />
+                  <parentNode nameNode='elem2' />
+                  <parentNode nameNode='DIFFERENT'>
+                    <childNode nameNode='child1' />
+                    <childNode nameNode='child2' />
+                    <childNode nameNode='child3' />
+                  </parentNode>
+                </rootNode>";
 
             var patch = GetPatch(source, target);
 
@@ -124,22 +124,22 @@ namespace FatAntelope.Tests
             // Insert a child element into a parent element that has a change affecting its unique trait.
 
             var source = @"
-                <root>
-                  <type1 />
-                  <type1 />
-                  <type1 />
-                  <type1 />
-                </root>";
+                <rootNode>
+                  <type1Node />
+                  <type1Node />
+                  <type1Node />
+                  <type1Node />
+                </rootNode>";
 
             var target = @"
-                <root>
-                  <type1 />
-                  <type1 />
-                  <type2 />
-                  <type1 />
-                  <type2 />
-                  <type2 />
-                </root>";
+                <rootNode>
+                  <type1Node />
+                  <type1Node />
+                  <type2Node />
+                  <type1Node />
+                  <type2Node />
+                  <type2Node />
+                </rootNode>";
 
             var patch = GetPatch(source, target);
 
@@ -152,35 +152,35 @@ namespace FatAntelope.Tests
             // Insert a child element into a parent element that has a change affecting its unique trait.
 
             var source = @"
-                <root>
-                    <parent name='parent1'>
-                        <child name='child1' />
-                        <child name='child3' />
-                    </parent>
-                    <parent name='parent2'>
-                        <child name='child1' />
-                        <child name='child2' />
-                    </parent>
-                </root>";
+                <rootNode>
+                    <parentNode nameNode='parent1'>
+                        <childNode nameNode='child1' />
+                        <childNode nameNode='child3' />
+                    </parentNode>
+                    <parentNode nameNode='parent2'>
+                        <childNode nameNode='child1' />
+                        <childNode nameNode='child2' />
+                    </parentNode>
+                </rootNode>";
 
             var target = @"
-                <root>
-                    <parent name='DIFFERENT'>
-                        <child name='child1' />
-                        <child name='child2' />
-                        <child name='child3' />
-                    </parent>
-                    <parent name='parent2'>
-                        <child name='child1' />
-                        <child name='child2' />
-                    </parent>
-                </root>";
+                <rootNode>
+                    <parentNode nameNode='DIFFERENT'>
+                        <childNode nameNode='child1' />
+                        <childNode nameNode='child2' />
+                        <childNode nameNode='child3' />
+                    </parentNode>
+                    <parentNode nameNode='parent2'>
+                        <childNode nameNode='child1' />
+                        <childNode nameNode='child2' />
+                    </parentNode>
+                </rootNode>";
 
             var patch = GetPatch(source, target);
 
-            AssertLocator(patch.SelectSingleNode("/root/parent[1]"), "Condition(1)");
-            AssertTransform(patch.SelectSingleNode("/root/parent[1]"), "SetAttributes(name)");
-            AssertTransform(patch.SelectSingleNode("/root/parent[1]/child[1]"), "InsertAfter(/root/parent[(@name='DIFFERENT')]/child[(@name='child1')])");
+            AssertLocator(patch.SelectSingleNode("/rootNode/parentNode[1]"), "Condition(1)");
+            AssertTransform(patch.SelectSingleNode("/rootNode/parentNode[1]"), "SetAttributes(nameNode)");
+            AssertTransform(patch.SelectSingleNode("/rootNode/parentNode[1]/childNode[1]"), "InsertAfter(/rootNode/parentNode[(@nameNode='DIFFERENT')]/childNode[(@nameNode='child1')])");
 
             AssertCanTransform(source, target);
         }
@@ -309,25 +309,25 @@ namespace FatAntelope.Tests
         public void InsertAfterSimple()
         {
             var source = @"
-                <root>
-                    <child1 />
-                    <child3 />
-                </root>";
+                <configSettings>
+                    <appSettings />
+                    <webServer />
+                </configSettings>";
 
             var target = @"
-                <root>
-                    <child1 />
-                    <clear all='true' />
-                    <child3 />
-                </root>";
+                <configSettings>
+                    <appSettings />
+                    <connectionStrings all='true' />
+                    <webServer />
+                </configSettings>";
 
             var patch = GetPatch(source, target);
 
             // Locator = none
-            AssertNoLocator(patch.SelectSingleNode("/root/clear"));
+            AssertNoLocator(patch.SelectSingleNode("/configSettings/connectionStrings"));
 
             // Transform = SetAttribute(type)
-            AssertTransform(patch.SelectSingleNode("/root/clear"), "InsertAfter(/root/child1)");
+            AssertTransform(patch.SelectSingleNode("/configSettings/connectionStrings"), "InsertAfter(/configSettings/appSettings)");
 
             AssertCanTransform(source, target);
         }
