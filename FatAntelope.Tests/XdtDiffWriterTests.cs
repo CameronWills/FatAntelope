@@ -83,7 +83,7 @@ namespace FatAntelope.Tests
             AssertNoLocator(patch.SelectSingleNode("/root/clear"));
 
             // Transform = SetAttribute(type)
-            AssertTransform(patch.SelectSingleNode("/root/clear"), "InsertBefore(/root/*[1])");
+            AssertTransform(patch.SelectSingleNode("/root/clear"), "InsertBefore(/root/child[(@type='elem1')])");
 
             AssertCanTransform(source, target);
         }
@@ -180,7 +180,7 @@ namespace FatAntelope.Tests
 
             AssertLocator(patch.SelectSingleNode("/rootNode/parentNode[1]"), "Condition(1)");
             AssertTransform(patch.SelectSingleNode("/rootNode/parentNode[1]"), "SetAttributes(nameNode)");
-            AssertTransform(patch.SelectSingleNode("/rootNode/parentNode[1]/childNode[1]"), "InsertAfter(/rootNode/parentNode[(@nameNode='DIFFERENT')]/childNode[(@nameNode='child1')])");
+            AssertTransform(patch.SelectSingleNode("/rootNode/parentNode[1]/childNode[1]"), "InsertBefore(/rootNode/parentNode[(@nameNode='DIFFERENT')]/childNode[(@nameNode='child3')])");
 
             AssertCanTransform(source, target);
         }
@@ -217,7 +217,7 @@ namespace FatAntelope.Tests
 
             AssertLocator(patch.SelectSingleNode("/root/parent[1]"), "Condition(1)");
             AssertTransform(patch.SelectSingleNode("/root/parent[1]"), "SetAttributes(name)");
-            AssertTransform(patch.SelectSingleNode("/root/parent[1]/child[1]"), "InsertAfter(/root/parent[1]/child[(@name='child1')])");
+            AssertTransform(patch.SelectSingleNode("/root/parent[1]/child[1]"), "InsertBefore(/root/parent[1]/child[(@name='child3')])");
 
             AssertCanTransform(source, target);
         }
@@ -246,7 +246,7 @@ namespace FatAntelope.Tests
             AssertTransform(patch.SelectSingleNode("/root/child[1]"), "SetAttributes(value)");
 
             // Transform = InsertBefore
-            AssertTransform(patch.SelectSingleNode("/root/child[2]"), "InsertBefore(/root/*[1])");
+            AssertTransform(patch.SelectSingleNode("/root/child[2]"), "InsertBefore(/root/child[(@name='child2')])");
 
             AssertCanTransform(source, target);
         }
@@ -273,7 +273,7 @@ namespace FatAntelope.Tests
             AssertNoLocator(patch.SelectSingleNode("/root/clear"));
 
             // Transform = SetAttribute(type)
-            AssertTransform(patch.SelectSingleNode("/root/clear"), "InsertAfter(/root/child[(@type='elem1')])");
+            AssertTransform(patch.SelectSingleNode("/root/clear"), "InsertBefore(/root/child[(@name='child2')])");
 
             AssertCanTransform(source, target);
         }
@@ -306,6 +306,52 @@ namespace FatAntelope.Tests
         }
 
         [TestMethod]
+        public void InsertDuplicateAfter()
+        {
+            var source = @"
+                <root>
+                    <child />
+                </root>";
+
+            var target = @"
+                <root>
+                    <child />
+                    <clear all='true' />
+                    <child />
+                </root>";
+
+            var patch = GetPatch(source, target);
+
+            AssertTransform(patch.SelectSingleNode("/root/clear"), "InsertAfter(/root/child[1])");
+            AssertTransform(patch.SelectSingleNode("/root/child"), "Insert");
+
+            AssertCanTransform(source, target);
+        }
+
+        [TestMethod]
+        public void InsertMultipleBefore()
+        {
+            var source = @"
+                <root>
+                    <child1 />
+                </root>";
+
+            var target = @"
+                <root>
+                    <child3 />
+                    <child2 />
+                    <child1 />
+                </root>";
+
+            var patch = GetPatch(source, target);
+
+            AssertTransform(patch.SelectSingleNode("/root/child2"), "InsertBefore(/root/child1)");
+            AssertTransform(patch.SelectSingleNode("/root/child3"), "InsertBefore(/root/child2)");
+
+            AssertCanTransform(source, target);
+        }
+
+        [TestMethod]
         public void InsertAfterSimple()
         {
             var source = @"
@@ -327,7 +373,7 @@ namespace FatAntelope.Tests
             AssertNoLocator(patch.SelectSingleNode("/configSettings/connectionStrings"));
 
             // Transform = SetAttribute(type)
-            AssertTransform(patch.SelectSingleNode("/configSettings/connectionStrings"), "InsertAfter(/configSettings/appSettings)");
+            AssertTransform(patch.SelectSingleNode("/configSettings/connectionStrings"), "InsertBefore(/configSettings/webServer)");
 
             AssertCanTransform(source, target);
         }
@@ -446,6 +492,40 @@ namespace FatAntelope.Tests
             AssertLocator(patch.SelectSingleNode("/root/child[3]"), "Match(name)");
             AssertValue(patch.SelectSingleNode("/root/child[3]/@name"), "child2");
             AssertTransform(patch.SelectSingleNode("/root/child[3]"), "SetAttributes(test)");
+
+            AssertCanTransform(source, target);
+        }
+
+        [TestMethod]
+        public void RemoveMultipleAttributes()
+        {
+            var source = @"
+                <root>
+                    <child name='child1' test='true' optional='value' />
+                    <child name='child2' test='true' optional='value' />
+                </root>";
+
+            var target = @"
+                <root>
+                    <child name='child1' test='false' optional='value' />
+                    <child name='child2' />
+                </root>";
+
+            var patch = GetPatch(source, target);
+
+
+            // Two transform nodes for the same child
+            Assert.AreEqual(patch.SelectSingleNode("/root").ChildNodes.Count, 2);
+
+            // First child has single attribute changed (test='false')
+            AssertLocator(patch.SelectSingleNode("/root/child[(@name='child1')]"), "Match(name)");
+            AssertTransform(patch.SelectSingleNode("/root/child[(@name='child1')]"), "SetAttributes(test)");
+            AssertValue(patch.SelectSingleNode("/root/child[(@name='child1')]/@test"), "false");
+
+            // Second child has two attributes removed (test and optional)
+            AssertLocator(patch.SelectSingleNode("/root/child[2]"), "Match(name)");
+            AssertValue(patch.SelectSingleNode("/root/child[2]/@name"), "child2");
+            AssertTransform(patch.SelectSingleNode("/root/child[2]"), "RemoveAttributes(test,optional)");
 
             AssertCanTransform(source, target);
         }

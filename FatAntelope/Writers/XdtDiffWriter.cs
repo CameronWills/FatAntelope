@@ -121,7 +121,7 @@ namespace FatAntelope.Writers
         private const string XdtCondition = "Condition({0})";
         private const string XdtSetAttributes = "SetAttributes({0})";
         private const string XdtRemoveAttributes = "RemoveAttributes({0})";
-        private const string XdtInsertBefore = "InsertBefore({0}/*[1])";
+        private const string XdtInsertBefore = "InsertBefore({0}/{1}{2})";
         private const string XdtInsertAfter = "InsertAfter({0}/{1}{2})";
         private const string XPathPredicate = "[({0}='{1}')]";
         private const string XPathIndexPredicate = "[{0}]";
@@ -197,7 +197,10 @@ namespace FatAntelope.Writers
                 foreach (var attr in oldElement.Attributes)
                 {
                     if (attr.Match == MatchType.NoMatch)
+                    { 
                         builder.Append((first ? string.Empty : ",") + attr.XmlNode.Name);
+                        first = false;
+                    }
                 }
                 AddTransform(element, string.Format(XdtRemoveAttributes, builder.ToString()));
 
@@ -302,7 +305,10 @@ namespace FatAntelope.Writers
         /// </summary>
         private XmlNode CopyNode(XNode node, XmlNode parent)
         {
-            var child = parent.OwnerDocument.ImportNode(node.XmlNode, true);
+            var child = (parent is XmlDocument)
+                ? (parent as XmlDocument).ImportNode(node.XmlNode, true)
+                : parent.OwnerDocument.ImportNode(node.XmlNode, true);
+
             parent.AppendChild(child);
 
             return child;
@@ -414,23 +420,45 @@ namespace FatAntelope.Writers
             if (parent == null || parent.Elements.Length < 2 || parent.Elements.Length == index + 1)
                 return TransformType.Insert.ToString();
 
-            // If first element, use 'InsertBefore'
-            if (index == 0)
-                return string.Format(XdtInsertBefore, path);
+            // Can we insert before the next child element
+            var next = parent.Elements[index + 1];
+            var trait = GetUniqueTrait(next);
+            if (trait == null)
+                return string.Format(XdtInsertBefore, path, next.Name, string.Empty);
 
-            // Otherwise use 'InsertAfter'
-            var previous = parent.Elements[index - 1];
-            var trait = GetUniqueTrait(previous);
-            if (trait != null)
+            if (trait.Attribute != null)
+                return string.Format(XdtInsertBefore, path, next.Name, BuildPredicate(trait.Attribute.XmlNode));
+
+            // Otherwise can we insert after the previous child element
+            var previous = GetPrevious(parent, index);
+
+            // No previous element, just insert at the begining of the children
+            if (previous == null)
+                return string.Format(XdtInsertBefore, path, "*", "[1]");
+
+            trait = GetUniqueTrait(previous);
+            if (trait == null)
+                return string.Format(XdtInsertAfter, path, previous.Name, string.Empty);
+
+            if (trait.Attribute != null)
+                return string.Format(XdtInsertAfter, path, previous.Name, BuildPredicate(trait.Attribute.XmlNode));
+
+            if (trait.Index > 0)
+                return string.Format(XdtInsertAfter, path, previous.Name, string.Format(XPathIndexPredicate, trait.Index));
+
+            return TransformType.Insert.ToString();
+        }
+
+        private XNode GetPrevious(XNode parent, int index)
+        {
+            for (var i = index - 1; i >= 0; i--)
             {
-                if (trait.Attribute != null)
-                    return string.Format(XdtInsertAfter, path, previous.Name, BuildPredicate(trait.Attribute.XmlNode));
-
-                if (trait.Index > 0)
-                    return string.Format(XdtInsertAfter, path, previous.Name, string.Format(XPathIndexPredicate, trait.Index));
+                var previous = parent.Elements[i];
+                if (previous.Match != MatchType.NoMatch)
+                    return previous;
             }
 
-            return string.Format(XdtInsertAfter, path, previous.Name, string.Empty);
+            return null;
         }
 
         /// <summary>
@@ -490,6 +518,7 @@ namespace FatAntelope.Writers
                 }
             }
 
+            // No duplicates, can simply use path / name
             return null;
         }
 
