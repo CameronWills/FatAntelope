@@ -169,7 +169,7 @@ namespace FatAntelope.Writers
 
             // Get the uniquely identifiable trait for the element, in both old and new trees
             var newTrait = GetUniqueTrait(newElement);
-            var oldTrait = GetUniqueTrait(oldElement) ?? newTrait;
+            var oldTrait = GetUniqueTrait(oldElement);
 
             // Replace
             if (transform == TransformType.Replace)  

@@ -239,7 +239,6 @@ namespace FatAntelope.Tests
             var patch = GetPatch(source, target);
 
             // Values
-            AssertValue(patch.SelectSingleNode("/root/child[1]/@name"), "child2");
             AssertValue(patch.SelectSingleNode("/root/child[2]/@name"), "child1");
 
             // Transform = SetAttributes
@@ -247,6 +246,37 @@ namespace FatAntelope.Tests
 
             // Transform = InsertBefore
             AssertTransform(patch.SelectSingleNode("/root/child[2]"), "InsertBefore(/root/child[(@name='child2')])");
+
+            AssertCanTransform(source, target);
+        }
+
+        [TestMethod]
+        public void InsertAfterChange()
+        {
+            var source = @"
+                <root>
+                    <child name='same' value='123abc' />
+                </root>";
+
+            var target = @"
+                <root>
+                    <child name='same' value='elem1' />
+                    <child name='same' value='456xyz' />
+                </root>";
+
+            var patch = GetPatch(source, target);
+
+            // Values
+            AssertValue(patch.SelectSingleNode("/root/child[1]/@value"), "elem1");
+
+            // Transform = SetAttributes
+            AssertTransform(patch.SelectSingleNode("/root/child[1]"), "SetAttributes(value)");
+
+            // No Locator
+            AssertNoLocator(patch.SelectSingleNode("/root/child[1]"));
+
+            // Transform = Insert
+            AssertTransform(patch.SelectSingleNode("/root/child[2]"), "Insert");
 
             AssertCanTransform(source, target);
         }
