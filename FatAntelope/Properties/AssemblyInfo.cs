@@ -6,11 +6,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("FatAntelope")]
-[assembly: AssemblyDescription("A tool for comparing two .config (xml) files and generating an XDT transform. Can also be used for unordered XML comparison, as an alternative to Microsoft's XML Diff tool. Extend BaseDiffWriter to create custom patches or diff grams.")]
+[assembly: AssemblyDescription("A tool for comparing two .config files and generating an XDT transform (Microsoft XML Document Transform). Useful for creating transforms for existing production web.config or app.config files. Can also be used for unordered XML comparison, as an alternative to Microsoft's XML Diff tool.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("FatAntelope")]
-[assembly: AssemblyCopyright("Copyright ©  2015")]
+[assembly: AssemblyCopyright("Copyright © 2019")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -32,5 +32,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("0.2.3.0")]
-[assembly: AssemblyFileVersion("0.2.3.0")]
+[assembly: AssemblyVersion("1.0.*")]
+[assembly: AssemblyFileVersion("1.0.0.0")]

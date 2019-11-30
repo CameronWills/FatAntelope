@@ -6,10 +6,14 @@
     <title>$title$</title>
     <authors>Cameron Wills</authors>
     <owners>Cameron Wills</owners>
-    <licenseUrl>https://raw.githubusercontent.com/CameronWills/FatAntelope/master/LICENSE.md</licenseUrl>
+    <license type="file">license.txt</license>
     <projectUrl>https://github.com/CameronWills/FatAntelope</projectUrl>
+	<repository type="git" url="https://github.com/CameronWills/FatAntelope.git" branch="master" />
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
     <tags>xdt config transform xml diff compare diffgram tree comparison cheetah slowcheetah</tags>
   </metadata>
+  <files>
+    <file src="license.txt" target="" />
+  </files>
 </package>
