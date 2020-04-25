@@ -1,7 +1,7 @@
 # FatAntelope
 
 A tool for comparing two .config files and generating an XDT transform (Microsoft XML Document Transform).
-Useful for creating transforms for existing production web.config or app.config files.
+Useful for creating config transforms for existing production web.config or app.config files.
 
 [![Build status](https://ci.appveyor.com/api/projects/status/iii1m7n3cdq3v5xm?svg=true)](https://ci.appveyor.com/project/CameronWills/fatantelope)
 [![Release](https://img.shields.io/github/release/CameronWills/fatantelope.svg)](https://github.com/CameronWills/FatAntelope/releases/latest)
@@ -11,7 +11,7 @@ Useful for creating transforms for existing production web.config or app.config 
 ## How it works
 
 FatAntelope parses the two config (xml) files into two trees and performs an unordered diff / comparison to identify nodes 
-that have been updated, inserted or deleted. And then generates a XDT transform from the difference.
+that have been updated, inserted or deleted, and then generates a XDT transform from these differences.
 
 The XML diff / comparison algorithm is a C# port of the 'XDiff' algorithm described here: 
 http://pages.cs.wisc.edu/~yuanwang/xdiff.html
@@ -103,5 +103,9 @@ Patch File (app.release.config) :
 - The generated XDT transform may not have the most optimal values for the xdt:Locator and xdt:Transform attributes. I recommend only using this output as a starting-point for your transforms.
 
 - The XML comparison algorithm used (XDiff) does an unordered comparison of XML nodes, so changes to child elements' position within the same parent will be ignored.
+
+## Why 'FatAntelope'
+
+A fat antelope for a [slow cheetah](https://github.com/microsoft/slow-cheetah)
 
 ![FatAntelope](banner.jpg)
