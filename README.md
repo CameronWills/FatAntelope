@@ -17,7 +17,7 @@ The XML diff / comparison algorithm is a C# port of the 'XDiff' algorithm descri
 http://pages.cs.wisc.edu/~yuanwang/xdiff.html
 
 ## Try It
-A demonstration is setup here: [fatantelopetester.apphb.com](https://fatantelopetester.apphb.com/)
+A demonstration is setup here: [fatantelopetester-app.azurewebsites.net](https://fatantelopetester-app.azurewebsites.net/)
 
 ## Download
 
